@@ -1,0 +1,165 @@
+html{
+    margin: auto;
+    font-family: arial, sans-serif;
+}
+
+/* Sticky Footer */
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #191e2b;
+  height:100%;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* Logo */
+.nav-wrapper .brand-logo img {
+    height: 64px;
+}
+
+.row{
+  margin-bottom: 0px;
+}
+
+.card{
+  background-color: #30395e;
+}
+
+.card .card-content .card-title {
+  margin-bottom: 20px;
+}
+
+.card .card-action.left{
+    position: relative;
+    background-color: inherit;
+    border: none;
+    padding: 0px 24px;
+    text-align: left;
+    display: inline-block;
+    width: 50%;
+    color: #85a5cc;
+}
+.card .card-action.right{
+    position: relative;
+    background-color: inherit;
+    border: none;
+    padding: 0px 24px;
+    text-align: right;
+    display: inline-block;
+    width: 50%;
+    color: #85a5cc;
+}
+
+.card .card-action a:not(.btn):not(.btn-large):not(.btn-small):not(.btn-large):not(.btn-floating) {
+    color:  #85a5cc;
+}
+
+/* --------- login page --------- */
+.login {
+  display: block;
+  text-align: center;
+}
+
+.login input {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-family: arial;
+    padding: 0 20px 0 50px;
+    outline: none;
+}
+
+.login.classify {
+    padding-bottom: 50px;
+}
+
+.login input#username {
+    background: rgba(255,255,255,0.3) url('ic_person_white_24dp_2x_dk.png') 10px center no-repeat;
+    background-size: 24px 24px;
+    color: #30395e;
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login input#username:focus {
+    background: rgba(255,255,255,0.4) url('ic_person_white_24dp_2x.png') 10px center no-repeat;
+    background-size: 24px 24px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login input::placeholder {
+  color: rgba(255,255,255,0.8);
+  color: #30395e;
+}
+
+.login input#password {
+    background: rgba(255,255,255,0.3) url('ic_lock_white_24dp_2x_bk.png') 10px center no-repeat;
+    background-size: 24px 24px;
+    color: #30395e;
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login input#password:focus {
+    background: rgba(255,255,255,0.4) url('ic_lock_white_24dp_2x.png') 10px center no-repeat;
+    background-size: 24px 24px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login input:active, .login input:focus {
+    border: 1px solid #d0e4f2;
+}
+
+.login button, .forms button {
+    width: 100%;
+    height: 36px;
+    background: #4a6491;
+    background-color: rgba(74,100,154,0.6);
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid rgba(74,100,154,0.2);
+    color: #fff;
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-family: arial;
+    outline: none;
+    cursor: pointer;
+    opacity: 60%;
+}
+
+.login button:hover, .forms button:hover {
+    background: #4a6491;
+}
+
+input:not([type]), input[type="text"]:not(.browser-default), input[type="password"]:not(.browser-default), input[type="email"]:not(.browser-default), input[type="url"]:not(.browser-default), input[type="time"]:not(.browser-default), input[type="date"]:not(.browser-default), input[type="datetime"]:not(.browser-default), input[type="datetime-local"]:not(.browser-default), input[type="tel"]:not(.browser-default), input[type="number"]:not(.browser-default), input[type="search"]:not(.browser-default), textarea.materialize-textarea {
+  padding: 0 20px 0 50px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+/* Error messages on login screen */
+.error {
+  color: #ffffff;
+  text-align: center;
+}
+.error p {
+  margin-left: 21px;
+  margin-bottom: 10px !important;
+  font-size: 14px;
+}
+.error p:before {
+    content: url('error_icon.png');
+    position: absolute;
+    margin-left: -21px;
+    margin-top: 3px;
+    opacity: 0.6;
+}

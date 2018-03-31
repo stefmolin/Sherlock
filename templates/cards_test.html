@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sherlock - Testing Cards</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='materialize.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='reboot.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='sherlock.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='materialize.min.js') }}"></script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  </head>
+  <body>
+    <nav>
+      <div class="nav-wrapper black">
+        <a href="#" class="brand-logo"> <!--TODO change this to go to the Confluence page for Sherlock"-->
+          <img src="{{ url_for('static', filename='sherlock_logo_white.png') }}" alt="Sherlock">
+        </a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li><a href="#">Login</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Feedback</a></li>
+        </ul>
+      </div>
+    </nav>
+    <main class="valign-wrapper">
+      <div class="container">
+        <div class="row">
+          <div class="col s8 offset-s2">
+            <div class="card  valign">
+              <div class="card-content white-text center">
+                <span class="card-title">Hang On...</span>
+                <p>Please be patient while we fetch the data to help you troubleshoot this issue.</p>
+                <br>
+                <div class="preloader-wrapper big active"> <!--change to inactive when query finishes loading with JS-->
+                  <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                      <div class="circle"></div>
+                    </div><div class="gap-patch">
+                      <div class="circle"></div>
+                    </div><div class="circle-clipper right">
+                      <div class="circle"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-action">
+                  <a class="left" href="#">No</a>
+                  <a class="right" href="#">Yes</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="page-footer black">
+      <div class="footer-copyright center">
+        <div class="container">
+        © 2018 Stefanie Molin
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

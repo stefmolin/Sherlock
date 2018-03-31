@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    {% block head %}
+    <title>Sherlock - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='materialize.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='reboot.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='sherlock.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='materialize.min.js') }}"></script>
+    {% endblock %}
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  </head>
+  <body {% block onload_events %}{% endblock %}>
+    <nav>
+      <div class="nav-wrapper black">
+        <a href="#" class="brand-logo"> <!--TODO change this to go to the Confluence page for Sherlock"-->
+          <img src="{{ url_for('static', filename='sherlock_logo_white.png') }}" alt="Sherlock">
+        </a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          {% block links %}
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Feedback</a></li> <!--TODO put slack channel URL here -->
+          {% endblock %}
+        </ul>
+      </div>
+    </nav>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <main class="valign-wrapper">
+      <div class="container">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </main>
+    <footer class="page-footer black">
+      <div class="footer-copyright center">
+        <div class="container">
+        © 2018 Stefanie Molin
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
