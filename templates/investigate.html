@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}
+Investigate {{ metric.upper() }}
+{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <script type="text/javascript" src="{{ url_for('static', filename='js/sherlock_rules.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/utilities.js') }}"></script>
+  <!-- Make this dynamically pick the JSON to read in based on the metric being investigated -->
+  {% if metric == 'cr' %}
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+  {% elif metric == 'ctr' %}
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+  {% elif metric == 'cos' %}
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+  {% elif metric == 'spend' %}
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+  {% elif metric == 'rext' %}
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+  {% endif %}
+{% endblock %}
+
+{% block links %}
+  <li><a href="{{ url_for('logout') }}">Logout</a></li>
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col s8 offset-s2">
+    <div class="card valign">
+      <div class="card-content white-text center">
+        <span id="card_title" class="card-title">Hang On...</span>
+        <p id="card_description">Please be patient while we fetch the data to help you troubleshoot this issue.</p>
+        <br>
+        <div id="loading_indicator" class="preloader-wrapper big active" style="display: none;">
+          <div class="spinner-layer spinner-blue-only">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-action">
+          <button id="left_action_button" class="left" onclick="parseDecisionTree(data)">No</button>
+          <button id="center_action_button" class="center" onclick="parseDecisionTree(data)">Acknowledge</button>
+          <button id="right_action_button" class="right" onclick="startTraversal(data, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}')">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+console.log("Client ID: {{client_id}}");
+console.log("Campaign ID: {{campaign_id}}");
+console.log("Start date: {{start_date}}");
+console.log("End date: {{end_date}}");
+console.log("Metric: {{metric}}");
+// start the troubleshooting process
+startTraversal(data, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}');
+</script>
+{% endblock %}

@@ -8,12 +8,16 @@ body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  background: #191e2b;
+  background: #1a1f2b;
   height:100%;
 }
 
 main {
   flex: 1 0 auto;
+}
+
+.darkest-background{
+  background-color: #000000;
 }
 
 /* Logo */
@@ -31,6 +35,17 @@ main {
 
 .card .card-content .card-title {
   margin-bottom: 20px;
+}
+
+.card .card-action.center{
+    position: relative;
+    background-color: inherit;
+    border: none;
+    padding: 0px 24px;
+    text-align: center;
+    display: inline-block;
+    width: 50%;
+    color: #85a5cc;
 }
 
 .card .card-action.left{
@@ -58,6 +73,10 @@ main {
     color:  #85a5cc;
 }
 
+.form_button {
+  padding: 16px 0 0 0 !important;
+}
+
 /* --------- login page --------- */
 .login {
   display: block;
@@ -82,7 +101,7 @@ main {
 }
 
 .login input#username {
-    background: rgba(255,255,255,0.3) url('ic_person_white_24dp_2x_dk.png') 10px center no-repeat;
+    background: rgba(255,255,255,0.3) url('../images/ic_person_white_24dp_2x_dk.png') 10px center no-repeat;
     background-size: 24px 24px;
     color: #30395e;
     color: rgba(255,255,255,0.8);
@@ -90,7 +109,7 @@ main {
 }
 
 .login input#username:focus {
-    background: rgba(255,255,255,0.4) url('ic_person_white_24dp_2x.png') 10px center no-repeat;
+    background: rgba(255,255,255,0.4) url('../images/ic_person_white_24dp_2x.png') 10px center no-repeat;
     background-size: 24px 24px;
     border: 1px solid rgba(255,255,255,0.2);
 }
@@ -101,7 +120,7 @@ main {
 }
 
 .login input#password {
-    background: rgba(255,255,255,0.3) url('ic_lock_white_24dp_2x_bk.png') 10px center no-repeat;
+    background: rgba(255,255,255,0.3) url('../images/ic_lock_white_24dp_2x_bk.png') 10px center no-repeat;
     background-size: 24px 24px;
     color: #30395e;
     color: rgba(255,255,255,0.8);
@@ -109,7 +128,7 @@ main {
 }
 
 .login input#password:focus {
-    background: rgba(255,255,255,0.4) url('ic_lock_white_24dp_2x.png') 10px center no-repeat;
+    background: rgba(255,255,255,0.4) url('../images/ic_lock_white_24dp_2x.png') 10px center no-repeat;
     background-size: 24px 24px;
     border: 1px solid rgba(255,255,255,0.2);
 }
@@ -157,9 +176,71 @@ input:not([type]), input[type="text"]:not(.browser-default), input[type="passwor
   font-size: 14px;
 }
 .error p:before {
-    content: url('error_icon.png');
+    content: url('../images/error_icon.png');
     position: absolute;
     margin-left: -21px;
     margin-top: 3px;
     opacity: 0.6;
+}
+
+/* card button formatting */
+.card .card-action button {
+    background: none;
+    text-transform: uppercase;
+    color: #85a5cc;
+    border: none;
+}
+
+.date-input {
+  padding: 0 !important;
+  margin-bottom: 5px !important;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+select {
+    margin: 0 0 20px 0;
+    border: 1px solid #111;
+    background: transparent;
+    /*width: 140px;*/
+    padding: 5px 35px 5px 5px;
+    font-size: 16px;
+    border: 1px solid red
+    height: 34px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: url('../images/ic_arrows_white_24dp_2x.png') 96% / 15% no-repeat #eee;
+    background-color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: inline;
+}
+
+.large-select {
+  background: url('../images/ic_arrows_white_24dp_2x.png') 96% / 5% no-repeat #eee;
+  background-color: rgba(255,255,255,0.3);
+}
+
+select.metric, select.large-select {
+    color: #191e2b;
+}
+
+select:focus, select:active {
+    background-color: #6e748e;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+}
+
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#metric_selector, #campaign_selector {
+  height: 100%;
 }

@@ -1,0 +1,542 @@
+// Don't remove this first line (paste JSON below)
+var data = JSON.parse(`
+{
+	"cards": [
+		{
+			"id": "start",
+			"title": "Checking Number of Campaigns...",
+			"action": {
+				"rule": "detectChangeInCount",
+				"additional_arguments": "campaign_name",
+				"result": {
+					"true": {
+						"description": "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR.",
+						"next_card": "cr_setup_sampling_ratio_rule",
+						"button_location": "center",
+						"button_text": "Acknowledge"
+					},
+					"false": {
+						"next_card": "cr_setup_sampling_ratio_rule"
+					}
+				}
+			},
+			"query_url": "http://watson/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"description": null
+		},
+		{
+			"id": "cr_setup_sampling_ratio_rule",
+			"title": "Sampling Ratio",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_sampling_ratio_graph"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_capping_starting_date_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_sampling_ratio_graph",
+			"title": "Sampling Ratio",
+			"type": "graph",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the sampling ratio on {campaign_name} the {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_capping_starting_date_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_capping_starting_date_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_capping_starting_date_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_capping_ending_date_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_capping_starting_date_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the capping start date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_capping_ending_date_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_capping_ending_date_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_capping_ending_date_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_daily_capping_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_capping_ending_date_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the capping end date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_daily_capping_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_daily_capping_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_daily_capping_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_campaign_capping_since_last_visit_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_daily_capping_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": null,
+					"next_card": "cr_setup_campaign_capping_since_last_visit_rule",
+					"button_location": "right",
+					"button_text": "Acknowledge"
+				}
+			]
+		},
+		{
+			"id": "cr_setup_campaign_capping_since_last_visit_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_campaign_capping_since_last_visit_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_partner_capping_since_last_visit_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_campaign_capping_since_last_visit_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the campaign capping since last visit on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_partner_capping_since_last_visit_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_partner_capping_since_last_visit_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_partner_capping_since_last_visit_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_campaign_lifetime_capping_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_partner_capping_since_last_visit_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_campaign_lifetime_capping_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_campaign_lifetime_capping_rule",
+			"title": "Capping Parameters",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_campaign_lifetime_capping_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_segmentation_enabled_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_campaign_lifetime_capping_text",
+			"title": "Capping Parameters",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It seems that someone changed the campaign lifetime capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_segmentation_enabled_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_segmentation_enabled_rule",
+			"title": "Segmentation Parameters",
+			"type": "rule",
+			"query_url": "setup_segmentation_is_enabled.sql",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_segmentation_enabled_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_banners"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_segmentation_enabled_text",
+			"title": "Segmentation Parameters",
+			"type": "text",
+			"query_url": "setup_segmentation_is_enabled.sql",
+			"description": "It seems that someone changed custom segmentation enablement on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_segment_names_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_segment_names_rule",
+			"title": "Segmentation Parameters",
+			"type": "rule",
+			"query_url": "setup_segment_names.sql",
+			"description": null,
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_segment_names_text",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_banners"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_segment_names_text",
+			"title": "Segmentation Parameters",
+			"type": "text",
+			"query_url": "setup_segment_names.sql",
+			"description": "It seems that someone added / deleted a segment: {segment_name} on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_banners",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_banners_rule",
+			"title": "Number of banners live",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_banners_text"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_setup_feed_import_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_banners_text",
+			"title": "Number of banners live",
+			"type": "graph",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "It looks that someone (dis)activated some banner formats on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_setup_feed_import_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_feed_import_rule",
+			"title": "Feed check",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_setup_feed_quality_graph"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_perf_deduplication_ratio_rule"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_setup_feed_quality_graph",
+			"title": "Feed Check",
+			"type": "graph",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Did the feed quality changed recently?",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_feed_quality_text",
+						"button_location": "right",
+						"button_text": "Yes"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_perf_deduplication_ratio_rule",
+						"button_location": "right",
+						"button_text": "No"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_feed_quality_text",
+			"title": "Feed Check",
+			"type": "text",
+			"query_url": "http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Feed quality can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_perf_deduplication_ratio_rule",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_rule",
+			"title": "Attribution Model",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_perf_deduplication_ratio_graph"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_perf_Website_sales_share_graph"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_graph",
+			"title": "Attribution Model",
+			"type": "graph",
+			"query_url": "http://watson/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Seems that the dedup ratio is volatile. Do you notice any unusual variation looking at recent data?",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_perf_deduplication_ratio_text",
+						"button_location": "right",
+						"button_text": "Yes"
+					}
+				},
+				{
+					"false": {
+						"next_card": "cr_perf_Website_sales_share_graph",
+						"button_location": "right",
+						"button_text": "No"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_text",
+			"title": "Attribution Model",
+			"type": "text",
+			"query_url": null,
+			"description": "A consistant change of the dedup ratio can impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"results": [
+				{
+					"true": {
+						"next_card": "cr_perf_Website_sales_share_graph",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_perf_Website_sales_share_graph",
+			"title": "Share of total Website sales",
+			"type": "rule",
+			"query_url": "http://watson/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the share of sales comming from this campaign stable on the client side?",
+			"answers": [
+				{
+					"true": {
+						"next_card": "cr_perf_Website_sales_share_text_true",
+						"button_location": "right",
+						"button_text": "Yes"
+					}
+				},
+				{
+					"false": {
+						"next_card": "",
+						"button_location": "right",
+						"button_text": "No"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_perf_Website_sales_share_text_true",
+			"title": "Share of total Website sales",
+			"type": "Text",
+			"query_url": null,
+			"description": "If the share of sales comming from this campaign over your total website sales, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.",
+			"results": [
+				{
+					"true": {
+						"next_card": "",
+						"button_location": "right",
+						"button_text": "Acknowledge"
+					}
+				}
+			]
+		},
+		{
+			"id": "cr_end",
+			"title": "Finish!",
+			"type": "text",
+			"query_url": null,
+			"description": "Seems that you're done! Thanks for the investigation and feel free to discuss it with your TAM or AX if needed",
+			"results": null
+		}
+	]
+}
+`); // Don't remove this

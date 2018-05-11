@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     {% block head %}
     <title>Sherlock - {% block title %}{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='materialize.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='reboot.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='sherlock.css') }}">
-    <script type="text/javascript" src="{{ url_for('static', filename='materialize.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/vendor/materialize.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/vendor/reboot.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/sherlock.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/materialize.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/sherlock.js') }}"></script>
     {% endblock %}
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   </head>
   <body {% block onload_events %}{% endblock %}>
     <nav>
-      <div class="nav-wrapper black">
+      <div class="nav-wrapper darkest-background">
         <a href="#" class="brand-logo"> <!--TODO change this to go to the Confluence page for Sherlock"-->
-          <img src="{{ url_for('static', filename='sherlock_logo_white.png') }}" alt="Sherlock">
+          <img src="{{ url_for('static', filename='images/sherlock_logo_white.png') }}" alt="Sherlock">
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down">
           {% block links %}
             <li><a href="#">FAQ</a></li>
-            <li><a href="#">Feedback</a></li> <!--TODO put slack channel URL here -->
+            <li><a href="https://yourcompany.slack.com/messages/<channel_id>">Feedback</a></li>
           {% endblock %}
         </ul>
       </div>
@@ -40,10 +41,10 @@
         {% endblock %}
       </div>
     </main>
-    <footer class="page-footer black">
-      <div class="footer-copyright center">
+    <footer class="page-footer darkest-background">
+      <div class="footer center">
         <div class="container">
-        © 2018 Stefanie Molin
+          <img src="{{ url_for('static', filename='images/scope_logo_w.png') }}" alt="SCOPE">
         </div>
       </div>
     </footer>

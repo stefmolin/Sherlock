@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, escape, Markup
 from sherlock.security import is_valid_user
-from datetime import datetime
+from datetime import datetime, timedelta, date
 import os
 import logging
 try:
@@ -28,8 +28,7 @@ def test():
 def login():
   # check if the user already has a session
   if 'username' in session:
-    # flash(Markup('Logged in as {user}. <a href="{switch}">Not you?</a>'.format(user=escape(session['username']), switch=url_for('logout', switch_user=1))))
-    return redirect(url_for('homepage'))
+    return redirect(url_for('parameter_entry'))
   else:
     # no session detected, show log in
     error = None
@@ -39,7 +38,7 @@ def login():
         # successful login, set session
         logger.info('{user} has logged in'.format(user=username))
         session['username'] = username
-        return redirect(url_for('homepage'))
+        return redirect(url_for('parameter_entry'))
       else:
         # unsuccessful login attempt, display error and allow another attempt
         error = 'Wrong username/password. Please try again.'
@@ -47,10 +46,37 @@ def login():
     else:
       return render_template('login.html')
 
-@app.route("/home")
-def homepage():
+@app.route("/parameter_entry")
+def parameter_entry():
     if 'username' in session:
-        return render_template('homepage.html')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        if start_date and not end_date:
+            end_date = str(date.today() - timedelta(1))
+        elif not start_date and end_date:
+            start_date = datetime.strftime((datetime.strptime(end_date, '%Y-%m-%d') - timedelta(15)), '%Y-%m-%d')
+        return render_template('parameter_entry.html',
+                                client_id=request.args.get('client_id'),
+                                start_date=start_date,
+                                end_date=end_date,
+                                metric=request.args.get('kpi'))
+    else:
+        return redirect(url_for('login'))
+
+@app.route("/investigate", methods=["POST"])
+def investigate():
+    if 'username' in session:
+        client_id = request.form['client_id']
+        campaign_id = request.form['campaign_selector']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        metric = request.form['metric']
+        return render_template('investigate.html',
+                                client_id=client_id,
+                                campaign_id=campaign_id,
+                                start_date=start_date,
+                                end_date=end_date,
+                                metric=metric)
     else:
         return redirect(url_for('login'))
 

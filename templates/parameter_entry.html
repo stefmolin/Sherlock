@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block title %}
+Parameter Entry
+{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/vendor/datepicker.css') }}">
+  <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/moment.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/datepicker.min.js') }}"></script>
+{% endblock %}
+
+{% block links %}
+  <li><a href="{{ url_for('logout') }}">Logout</a></li>
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col s8 offset-s2">
+    <div class="card valign">
+      <div class="card-content white-text center">
+        <span id="card_title" class="card-title">What do you want to investigate?</span>
+        <p id="card_description">Tell Sherlock what you want to look into, so he can gather clues.</p>
+        <br>
+        <div class="forms">
+          <form name="parameters" action="{{ url_for('investigate') }}" method="POST">
+            <div class="row">
+              <div class="col s2 offset-s5">
+                <select id="metric_selector" class="metric" name="metric" required="">
+                  {% if metric %}
+                    <option value="{{ metric }}" selected>{{ metric.upper() }}</option>
+                  {% else %}
+                    <option value="" disabled selected>Metric</option>
+                    <option value="cos">COS</option>
+                    <option value="cr">CR</option>
+                    <option value="ctr">CTR</option>
+                    <option value="rext">RexT</option>
+                    <option value="spend">Spend</option>
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s2 offset-s3">
+                {% if client_id %}
+                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" value="{{ client_id }}" placeholder="#">
+                {% else %}
+                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" placeholder="#">
+                {% endif %}
+                <label for="client_id">Client ID</label>
+              </div>
+              <div class="col s2">
+                {% if start_date %}
+                  <input id="start_date" name="start_date" class="date-input" type="text" required value="{{ start_date }}" placeholder="YYYY-MM-DD">
+                {% else %}
+                  <input id="start_date" name="start_date" class="date-input" type="text" required="" placeholder="YYYY-MM-DD">
+                {% endif %}
+                <label for="start_date">Start Date</label>
+              </div>
+              <div class="col s2">
+                {% if end_date %}
+                  <input id="end_date" name="end_date" class="date-input" type="text" required="" value="{{ end_date }}" placeholder="YYYY-MM-DD">
+                {% else %}
+                  <input id="end_date" name="end_date" class="date-input" type="text" required="" placeholder="YYYY-MM-DD">
+                {% endif %}
+                <label for="end_date">End Date</label>
+              </div>
+            </div>
+            <br>
+            <div id="loading_indicator" class="preloader-wrapper big active" style="display: none;">
+              <div class="spinner-layer spinner-blue-only">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s6 offset-s3">
+                <select id="campaign_selector" class="large-select" style="display: none;" name="campaign_selector" required="">
+                  <option value="" disabled selected>Campaign</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-action form_button">
+              <button id="campaign_lookup_button" type="button" onclick="lookupCampaigns()">Find campaign ID</button>
+              <button id="submit_parameters" style="display: none;">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var today = new Date();
+var yesterday = new Date(today.setDate(today.getDate() - 1));
+var min_date_limit = new Date(today.setDate(today.getDate() - 90));
+var end_date_picker;
+var start_date_picker = datepicker('#start_date',
+  {
+    minDate: min_date_limit, maxDate: yesterday, startDate: yesterday,
+    formatter: function(element, date) {
+      element.value = moment(date).format('YYYY-MM-DD');
+    },
+    onSelect: function(instance) {
+      if (typeof end_date_picker != "undefined"){
+        end_date_picker.remove();
+      }
+      end_date_picker = datepicker('#end_date',
+        {
+          minDate: instance.dateSelected, maxDate: yesterday,
+          startDate: yesterday, dateSelected: yesterday,
+          formatter: function(element, date) {
+            element.value = moment(date).format('YYYY-MM-DD');
+          }
+        }
+      );
+    }
+  }
+);
+</script>
+{% endblock %}
