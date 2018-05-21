@@ -7,6 +7,9 @@ Investigate {{ metric.upper() }}
   {{ super() }}
   <script type="text/javascript" src="{{ url_for('static', filename='js/sherlock_rules.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/utilities.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/numeral.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/moment.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/Chart.min.js') }}"></script>
   <!-- Make this dynamically pick the JSON to read in based on the metric being investigated -->
   {% if metric == 'cr' %}
     <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
@@ -34,6 +37,7 @@ Investigate {{ metric.upper() }}
         <span id="card_title" class="card-title">Hang On...</span>
         <p id="card_description">Please be patient while we fetch the data to help you troubleshoot this issue.</p>
         <br>
+        <canvas id="chart" style="display: none;"></canvas>
         <div id="loading_indicator" class="preloader-wrapper big active" style="display: none;">
           <div class="spinner-layer spinner-blue-only">
             <div class="circle-clipper left">
@@ -47,10 +51,12 @@ Investigate {{ metric.upper() }}
             </div>
           </div>
         </div>
+        <br>
+        <p id="investigation_info"><em>**You are currently investigating: client {{client_id}}, campaign {{campaign_id}}, for {{metric.upper()}} between {{start_date}} and {{end_date}}.**</em></p>
         <div class="card-action">
-          <button id="left_action_button" class="left" onclick="parseDecisionTree(data)">No</button>
-          <button id="center_action_button" class="center" onclick="parseDecisionTree(data)">Acknowledge</button>
-          <button id="right_action_button" class="right" onclick="startTraversal(data, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}')">Yes</button>
+          <button id="left_action_button" class="left">No</button>
+          <button id="center_action_button" class="center">Acknowledge</button>
+          <button id="right_action_button" class="right">Yes</button>
         </div>
       </div>
     </div>
@@ -63,6 +69,6 @@ console.log("Start date: {{start_date}}");
 console.log("End date: {{end_date}}");
 console.log("Metric: {{metric}}");
 // start the troubleshooting process
-startTraversal(data, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}');
+startTraversal(decision_tree, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}');
 </script>
 {% endblock %}

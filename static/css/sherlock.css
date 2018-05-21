@@ -244,3 +244,16 @@ input[type="number"] {
 #metric_selector, #campaign_selector {
   height: 100%;
 }
+
+#chart {
+  background-color: #30395e;
+  margin-right:20px;
+  margin-top: 10px;
+  max-width: 100%;
+}
+
+#investigation_info {
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-size: smaller;
+}

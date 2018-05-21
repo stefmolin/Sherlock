@@ -12,8 +12,17 @@ function toggleElement(id){
 
 function hideAllButtons() {
   const buttons = ['left_action_button', 'center_action_button', 'right_action_button'];
-  for (var i in buttons) {
-    document.getElementById(buttons[i]).style.display = "none";
+  turnOff(buttons);
+}
+
+function turnOffCardExtras() {
+  const elements = ['loading_indicator', 'chart'];
+  turnOff(elements);
+}
+
+function turnOff(elements) {
+  for (var e in elements) {
+    document.getElementById(elements[e]).style.display = "none";
   }
 }
 
@@ -31,15 +40,6 @@ function setCardDescription(description) {
 ****   trees, maniuplating and transitioning   ****
 ****   between cards.                          ****
 **************************************************/
-function parseDecisionTree(json) {
-  // TODO this wrapper function could ideally set the whole thing in motion by calling it in the body
-
-  const start = getStartNode(json);
-  setCardTitle(start.title);
-  setCardDescription(start.description);
-  toggleElement("loading_indicator");
-}
-
 function startTraversal(json, client_id, campaign_id, start_date, end_date) {
   // hide all the buttons
   hideAllButtons();
@@ -54,54 +54,77 @@ function startTraversal(json, client_id, campaign_id, start_date, end_date) {
   makeRequest(initialCard.query_url.format({client_id : client_id, campaign_id : campaign_id,
                                             start_date : start_date, end_date : end_date}),
               "POST", populateCard, dataUnavailable, initialCard,
-              json, client_id, campaign_id, start_date, end_date); // TODO make function populateCard() for building the card with the data and dataUnavailable() for handling errors
+              json, client_id, campaign_id, start_date, end_date);
 }
 
-function populateCard(data, card, json, client_id, campaign_id, start_date, end_date) {
-  // TODO building the card with the data returned from API
-  // this needs to be passed either the card itself or the rule part for what it will be performing
-  // this should call functions for handling the specific cases: rule, graph, text, etc.
-  const resultOfCheck = window[card.action.rule](data, card.action.additional_arguments);
-  toggleElement("loading_indicator");
-  if (resultOfCheck !== false) {
-    setCardDescription(card.action.result.true.description.format(resultsOfCheck));
-    const nextCard = card.action.result.true.next_card;
-    const buttonLocation = card.action.result.true.button_location + "_action_button";
-    const buttonText = card.action.result.true.button_text;
-    var button = document.getElementById(buttonLocation);
-    button.setAttribute("onClick", "changeCard(data, " + card + ", " + 'THIS NEEDS TO BE REWORKED)');
-    button.innerHTML = buttonText;
-    toggleElement(buttonLocation);
-  } else {
-    // no issue, so automatically go to the next card
-    const nextCardId = card.action.result.false.next_card;
-    // TODO switch the card to this one!
-    // note can check if the JSON has a value like: card.fake_attribute === undefined
-    if (nextCardId !== undefined) {
-      changeCard(json, nextCardId, client_id, campaign_id, start_date, end_date);
+function populateButton(card, buttonPath, client_id, campaign_id, start_date, end_date) {
+  const nextCardId = card.action.result[buttonPath].next_card;
+  if (nextCardId !== undefined && nextCardId !== null) {
+    if (card.action.result[buttonPath].button_location !== undefined && card.action.result[buttonPath].button_location !== null) {
+      const buttonLocation = card.action.result[buttonPath].button_location + "_action_button";
+      const buttonText = card.action.result[buttonPath].button_text;
+      var button = document.getElementById(buttonLocation);
+      button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
+      button.innerHTML = buttonText;
+      toggleElement(buttonLocation);
     }
   }
 }
 
-function populateCardRule(data, card, json, client_id, campaign_id, start_date, end_date) {
-  // TODO
-}
-
-function populateCardGraph(data, card, json, client_id, campaign_id, start_date, end_date) {
-  // TODO
-}
-
-function populateCardText(data, card, json, client_id, campaign_id, start_date, end_date) {
-  // TODO
+function populateCard(data, card, json, client_id, campaign_id, start_date, end_date) {
+  var resultOfCheck = null;
+  if (card.action.function !== 'undefined' && card.action.function !== null) {
+    if (card.action.additional_arguments.length > 1) {
+      resultOfCheck = window[card.action.function](data, ...card.action.additional_arguments);
+    } else {
+      resultOfCheck = window[card.action.function](data, card.action.additional_arguments);
+    }
+  }
+  toggleElement("loading_indicator");
+  if (card.action.ask_user == true) {
+    // populate the buttons bc user needs to move the process forward
+    var buttonPaths = [true, false];
+    for (var i in buttonPaths) {
+      populateButton(card, buttonPaths[i], client_id, campaign_id, start_date, end_date);
+    }
+  } else {
+    if (resultOfCheck !== null && resultOfCheck !== false) {
+      if (card.action.result.true.description !== undefined && card.action.result.true.description !== null) {
+        setCardDescription(card.action.result.true.description.format(resultOfCheck));
+      }
+      if (card.action.result.true.follow_up !== 'undefined' && card.action.result.true.follow_up !== undefined) {
+        const followUpResults = window[card.action.result.true.follow_up.function](data, ...card.action.result.true.follow_up.additional_arguments);
+      }
+      const nextCardId = card.action.result.true.next_card;
+      if (nextCardId !== undefined && nextCardId !== null) {
+        if (card.action.result.true.button_location !== undefined && card.action.result.true.button_location !== null) {
+          const buttonLocation = card.action.result.true.button_location + "_action_button";
+          const buttonText = card.action.result.true.button_text;
+          var button = document.getElementById(buttonLocation);
+          button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
+          button.innerHTML = buttonText;
+          toggleElement(buttonLocation);
+        } else {
+          // automatically advance since this card has no buttons
+          changeCard(json, nextCardId, client_id, campaign_id, start_date, end_date);
+        }
+      }
+    } else {
+      // automatically go to the next card
+      const nextCardId = card.action.result.false.next_card;
+      if (nextCardId !== undefined) {
+        changeCard(json, nextCardId, client_id, campaign_id, start_date, end_date);
+      }
+    }
+  }
 }
 
 function dataUnavailable() {
-  // TODO for handling errors getting the data from the API
   setCardTitle("Red Herring (!)");
   setCardDescription("Well, this is truly embarrassing! Sherlock got fooled by a red herring. Please come back and try again later when he's gotten his act together.");
-  if (document.getElementById("loading_indicator").style.display !== "none") {
-    toggleElement("loading_indicator"); // hide the indicator if it isn't off already
-  }
+  turnOffCardExtras();
+  hideAllButtons();
+  turnOff(['investigation_info']);
 }
 
 function getStartNode(json) {
@@ -110,15 +133,27 @@ function getStartNode(json) {
 
 function changeCard(json, id, client_id, campaign_id, start_date, end_date) {
   const nextCard = getCardById(json, id);
-  //TODO change the title/description and make the request if the URL is not blank
   setCardTitle(nextCard.title);
   setCardDescription(nextCard.description);
-  toggleElement("loading_indicator");
-  if (nextCard.query_url !== undefined) {
+  hideAllButtons(); // change this when we have the JIRA ticket creation available
+  if (id.toLowerCase() === 'end') {
+    turnOff(['investigation_info']);
+    turnOffCardExtras();
+  }
+  if (nextCard.query_url !== 'undefined' && nextCard.query_url !== undefined && nextCard.query_url !== null) {
+    turnOffCardExtras();
+    toggleElement('loading_indicator');
     makeRequest(nextCard.query_url.format({client_id : client_id, campaign_id : campaign_id,
                                               start_date : start_date, end_date : end_date}),
                 "POST", populateCard, dataUnavailable, nextCard, json,
                 client_id, campaign_id, start_date, end_date);
+  } else {
+    turnOffCardExtras();
+    if (nextCard.action !== undefined && nextCard.action.result !== undefined){
+      for (var button in nextCard.action.result) {
+        populateButton(nextCard, button, client_id, campaign_id, start_date, end_date);
+      }
+    }
   }
 }
 

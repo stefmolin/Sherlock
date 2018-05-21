@@ -1,3 +1,38 @@
+################################################################################
+######                  IMPORTANT RULES FOR MAKING CARDS                  ######
+###                                                                          ###
+#  1. First card must have ID "start"                                          #
+#  2. Last card must have ID "end"                                             #
+#  3. `function` is the JavaScript function that will be used on the data.     #
+#     Note that this must be spelled exactly as the function is defined.       #
+#  4. `additional_arguments` lists (in order) arguments besides the data       #
+#     itself to the function in #3.                                            #
+#  5. `ask_user` indicates whether Sherlock should wait for user input or not. #
+#  6. `description` after the result is calculated can only use replacements   #
+#     that will be in the JS function's return value.                          #
+#  7. Buttons that only define `next_card` will automatically advance.         #
+#  8. Buttons that define `button_location`, but not `button_text` will have   #
+#     the last text they were set with. However, it's best to be explicit and  #
+#     define your own.                                                         #
+#  9. If you take advantage of the `follow_up` section, note that this will    #
+#     only show the data, not act as a new card. Use this to graph the values  #
+#     after Sherlock makes a decision so the user can see what Sherlock saw    #
+#     and accept it. Note that if you need a user response on the same data    #
+#     afterwards, you will need to define a separate card.                     #
+# 10. Title and description in the outer section of the card will show when    #
+#     the data loads. The description will change when the data has been       #
+#     retrieved if it is provided again in the result section.                 #
+# 11. To properly switch cards, the ID's for `next_card` and that card being   #
+#     referenced must match exactly.                                           #
+# 12. The `query_url` must match the API endpoint for that query resource and  #
+#     must have a query string appended with all the values that need to be    #
+#     replaced.                                                                #
+# 13. Cards that are meant to display text only and require buttons should     #
+#     define `ask_user` to true, since the user needs to answer to move        #
+#     forward to the next card.                                                #
+#                                                                              #
+################################################################################
+
 cards:
 
 # Get dataframe from new_campaign.sql
@@ -5,29 +40,27 @@ cards:
 #       - If the total number of campaigns for this client did not change --> let the user Acknowledge that they launched/removed a campaign recently and that this might affect performance. Then pass to next card.
     - id: 'start' # call the first card "start" to easily find it later regardless of the order this file is in
       title: 'Checking Number of Campaigns...'
-      query_url: http://watson/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
       description:
-##### this section is experimental
       action:
-        rule: detectChangeInCount
+        ask_user: false
+        function: detectChangeInCount
         additional_arguments: campaign_name
         result:
           true:
               description: "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR."
               next_card: 'cr_setup_sampling_ratio_rule'
-              button_location: 'center'
-              button_text: 'Acknowledge'
-          false: # if no description here, automatically advance the card?
+              button_location: center
+              button_text: Acknowledge
+          false:
               next_card: 'cr_setup_sampling_ratio_rule'
-#### end experimental section
-
 
 #
 # # 2
 #     - id: 'cr_setup_campaign_number_text'
 #       title: 'Number of Campaigns'
 #       type: 'text'
-#       query_url: http://watson/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
 #       description: "Seems that someone launched/paused (a) campaign(s): list{campaign_name} on this account on {day}. This can affect your campaign's CR"
 #       answers:
 #           - true:
@@ -45,27 +78,31 @@ cards:
 #       - If the sampling ratio changed --> show graph to end user with the evolution to confirm it is normal and let user know this might affect performance. Then pass to next card.
     - id: 'cr_setup_sampling_ratio_rule'
       title: 'Sampling Ratio'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
       action:
-        rule: detectChangeInCount
-        additional_arguments: campaign_sampling_ratio
+        ask_user: false
+        function: detectChangeInCount
+        additional_arguments: "campaign_sampling_ratio"
         result:
           true:
-              description: "It seems that someone changed the sampling ratio on campaign ID: {campaign_id} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-              next_card: 'cr_setup_capping_starting_date_rule'
-              button_location: 'center'
-              button_text: 'Acknowledge'
-              graph: functionForGraphingGoesHere
-          false: # if no description here, automatically advance the card?
-              next_card: 'cr_setup_capping_starting_date_rule'
+              description: "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              follow_up:
+                function: graphData
+                additional_arguments: # the first argument (the data from the query) will automatically be used
+                    - "campaign_sampling_ratio" # the column to graph
+                    - "percent" # how to format the y-axis
+              next_card: 'cr_setup_capping_rule'
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'cr_setup_capping_rule'
 
 # # 4
 #     - id: 'cr_setup_sampling_ratio_graph'
 #       title: 'Sampling Ratio'
 #       type: 'graph'
-#       query_url: http://watson/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
 #       description: 'It seems that someone changed the sampling ratio on {campaign_name} the {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
 #       results:
 #         - true:
@@ -85,183 +122,199 @@ cards:
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the campaign_capping_starting_date changed --> pass to next card
 #       - If some campaign_capping_starting_date changed --> Let the user Acknowledge that the capping starting date changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_capping_starting_date_rule'
+    - id: 'cr_setup_capping_rule'
       title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
-      answers:
-          - true:
-              next_card: 'cr_setup_capping_starting_date_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_capping_ending_date_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+      action:
+        ask_user: false
+        function: detectChangeInValue
+        additional_arguments:
+          - campaign_capping_starting_day
+          - campaign_capping_ending_day
+          - daily_capping
+          - campaign_capping_since_last_visit
+          - partner_capping_since_last_visit
+          - campaign_lifetime_capping
+        result:
+          true:
+              description: "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              next_card: 'cr_setup_segmentation_enabled_rule'
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'cr_setup_segmentation_enabled_rule'
 # 6
-    - id: 'cr_setup_capping_starting_date_text'
-      title: 'Capping Parameters'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the capping start date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_capping_ending_date_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+    # - id: 'cr_setup_capping_starting_date_text'
+    #   title: 'Capping Parameters'
+    #   type: 'text'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description: 'It seems that someone changed the capping start date {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+    #   results:
+    #       - true:
+    #           next_card: 'cr_setup_capping_ending_date_rule'
+    #           button_location: 'right'
+    #           button_text: 'Acknowledge'
 
 # 7
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the campaign_capping_ending_date changed --> pass to next card
 #       - If some campaign_capping_ending_date changed --> Let the user Acknowledge that the capping ending date changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_capping_ending_date_rule'
-      title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description:
-      answers:
-          - true:
-              next_card: 'cr_setup_capping_ending_date_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_daily_capping_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
-# 8
-    - id: 'cr_setup_capping_ending_date_text'
-      title: 'Capping Parameters'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the capping end date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_daily_capping_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+    # - id: 'cr_setup_capping_ending_date_rule'
+    #   title: 'Capping Parameters'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description:
+    #   action:
+    #     function: detectChangeInCount
+    #     additional_arguments: campaign_capping_ending_day
+    #     result:
+    #       true:
+    #           description: "It seems that someone changed the capping end date on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+    #           next_card: "cr_setup_daily_capping_rule"
+    #           button_location: "center"
+    #           button_text: "Acknowledge"
+    #       false:
+    #           next_card: "cr_setup_daily_capping_rule"
+
+# # 8
+#     - id: 'cr_setup_capping_ending_date_text'
+#       title: 'Capping Parameters'
+#       type: 'text'
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       description: 'It seems that someone changed the capping end date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+#       results:
+#           - true:
+#               next_card: 'cr_setup_daily_capping_rule'
+#               button_location: 'right'
+#               button_text: 'Acknowledge'
 
 # 9
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the daily_capping changed --> pass to next card
 #       - If some daily_capping changed --> Let the user Acknowledge that the daily capping changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_daily_capping_rule'
-      title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description:
-      answers:
-          - true:
-              next_card: 'cr_setup_daily_capping_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_campaign_capping_since_last_visit_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+    # - id: 'cr_setup_daily_capping_rule'
+    #   title: 'Capping Parameters'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description:
+    #   action:
+    #     function: detectChangeInCount
+    #     additional_arguments: daily_capping
+    #     result:
+    #       true:
+    #           description: "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+    #           next_card: "cr_setup_campaign_capping_since_last_visit_rule"
+    #           button_location: "center"
+    #           button_text: "Acknowledge"
+    #       false:
+    #           next_card: "cr_setup_segmentation_enabled_rule"
 
-# 10
-    - id: 'cr_setup_daily_capping_text'
-      title: 'Capping Parameters'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-            next_card: 'cr_setup_campaign_capping_since_last_visit_rule'
-            button_location: 'right'
-            button_text: 'Acknowledge'
+# # 10
+#     - id: 'cr_setup_daily_capping_text'
+#       title: 'Capping Parameters'
+#       type: 'text'
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+#       results:
+#           - true:
+#             next_card: 'cr_setup_campaign_capping_since_last_visit_rule'
+#             button_location: 'right'
+#             button_text: 'Acknowledge'
 
 # 11
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the campaign_capping_since_last_visit changed --> pass to next card
 #       - If some campaign_capping_since_last_visit changed --> Let the user Acknowledge that the campaign_capping_since_last_visit changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_campaign_capping_since_last_visit_rule'
-      title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description:
-      answers:
-          - true:
-              next_card: 'cr_setup_campaign_capping_since_last_visit_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_partner_capping_since_last_visit_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+    # - id: 'cr_setup_campaign_capping_since_last_visit_rule'
+    #   title: 'Capping Parameters'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description:
+    #   action:
+    #     function: detectChangeInCount
+    #     additional_arguments: campaign_capping_since_last_visit
+    #     result:
+    #       true:
+    #           description: "It seems that someone changed the campaign capping since last visit on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+    #           next_card: "cr_setup_partner_capping_since_last_visit_rule"
+    #           button_location: "center"
+    #           button_text: "Acknowledge"
+    #       false:
+    #           next_card: "cr_setup_partner_capping_since_last_visit_rule"
 
-# 12
-    - id: 'cr_setup_campaign_capping_since_last_visit_text'
-      title: 'Capping Parameters'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the campaign capping since last visit on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_partner_capping_since_last_visit_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+# # 12
+#     - id: 'cr_setup_campaign_capping_since_last_visit_text'
+#       title: 'Capping Parameters'
+#       type: 'text'
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       description: 'It seems that someone changed the campaign capping since last visit on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+#       results:
+#           - true:
+#               next_card: 'cr_setup_partner_capping_since_last_visit_rule'
+#               button_location: 'right'
+#               button_text: 'Acknowledge'
 
 # 13
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the partner_capping_since_last_visit changed --> pass to next card
 #       - If some partner_capping_since_last_visit changed --> Let the user Acknowledge that the partner_capping_since_last_visit changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_partner_capping_since_last_visit_rule'
-      title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description:
-      answers:
-          - true:
-              next_card: 'cr_setup_partner_capping_since_last_visit_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_campaign_lifetime_capping_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
-# 14
-    - id: 'cr_setup_partner_capping_since_last_visit_text'
-      title: 'Capping Parameters'
-      type: text
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_campaign_lifetime_capping_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+    # - id: 'cr_setup_partner_capping_since_last_visit_rule'
+    #   title: 'Capping Parameters'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description:
+    #   action:
+    #     function: detectChangeInCount
+    #     additional_arguments: partner_capping_since_last_visit
+    #     result:
+    #       true:
+    #           description: "It seems that someone changed the partner capping since last visit on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+    #           next_card: "cr_setup_campaign_lifetime_capping_rule"
+    #           button_location: "center"
+    #           button_text: "Acknowledge"
+    #       false:
+    #           next_card: "cr_setup_campaign_lifetime_capping_rule"
+
+# # 14
+#     - id: 'cr_setup_partner_capping_since_last_visit_text'
+#       title: 'Capping Parameters'
+#       type: text
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+#       results:
+#           - true:
+#               next_card: 'cr_setup_campaign_lifetime_capping_rule'
+#               button_location: 'right'
+#               button_text: 'Acknowledge'
 
 # 15
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the campaign_lifetime_capping changed --> pass to next card
 #       - If some campaign_lifetime_capping changed --> Let the user Acknowledge that the campaign_lifetime_capping changed and that it might afftect performance. Then pass to next card.
-    - id: 'cr_setup_campaign_lifetime_capping_rule'
-      title: 'Capping Parameters'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description:
-      answers:
-          - true:
-              next_card: 'cr_setup_campaign_lifetime_capping_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_segmentation_enabled_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
-# 16
-    - id: 'cr_setup_campaign_lifetime_capping_text'
-      title: 'Capping Parameters'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It seems that someone changed the campaign lifetime capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-        - true:
-            next_card: 'cr_setup_segmentation_enabled_rule'
-            button_location: 'right'
-            button_text: 'Acknowledge'
+    # - id: 'cr_setup_campaign_lifetime_capping_rule'
+    #   title: 'Capping Parameters'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description:
+    #   action:
+    #     function: detectChangeInCount
+    #     additional_arguments: campaign_lifetime_capping
+    #     result:
+    #       true:
+    #           description: "It seems that someone changed the campaign lifetime capping on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+    #           next_card: "cr_setup_segmentation_enabled_rule"
+    #           button_location: "center"
+    #           button_text: "Acknowledge"
+    #       false:
+    #           next_card: "cr_setup_segmentation_enabled_rule"
+
+# # 16
+#     - id: 'cr_setup_campaign_lifetime_capping_text'
+#       title: 'Capping Parameters'
+#       type: 'text'
+#       query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+#       description: 'It seems that someone changed the campaign lifetime capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+#       results:
+#         - true:
+#             next_card: 'cr_setup_segmentation_enabled_rule'
+#             button_location: 'right'
+#             button_text: 'Acknowledge'
 
 
 ################################################################################################################################################################################
@@ -275,29 +328,34 @@ cards:
 #       - If  max(is_segmentation_enabled) = 0 --> Let the user Acknowledge that the segmentation was enabled and that it might afftect performance. Then pass to next card.
     - id: 'cr_setup_segmentation_enabled_rule'
       title: 'Segmentation Parameters'
-      type: 'rule'
-      query_url: setup_segmentation_is_enabled.sql
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/segmentation_is_enabled?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
-      answers:
-          - true:
-              next_card: 'cr_setup_segmentation_enabled_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
-              next_card: 'cr_setup_banners'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
-# 18
-    - id: 'cr_setup_segmentation_enabled_text'
-      title: 'Segmentation Parameters'
-      type: 'text'
-      query_url: setup_segmentation_is_enabled.sql
-      description: 'It seems that someone changed custom segmentation enablement on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
+      action:
+        ask_user: false
+        function: checkMaxValue
+        additional_arguments:
+          - is_segmentation_enabled # column to check the max for
+          - 0 # check if the max value is equal to 0
+        result:
+          true:
+              description: "Segmentation can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               next_card: 'cr_setup_segment_names_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'cr_setup_banners'
+
+# 18
+    # - id: 'cr_setup_segmentation_enabled_text'
+    #   title: 'Segmentation Parameters'
+    #   type: 'text'
+    #   query_url: setup_segmentation_is_enabled.sql
+    #   description: 'It seems that someone changed custom segmentation enablement on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+    #   results:
+    #       - true:
+    #           next_card: 'cr_setup_segment_names_rule'
+    #           button_location: 'right'
+    #           button_text: 'Acknowledge'
 
 # 19
 # Get dataframe from setup_segment_names.sql
@@ -305,29 +363,32 @@ cards:
 #       - If  count(disctinct segment_name) is not stable day over day --> Let the user Acknowledge that the the number of segments is fluctuating and that it might afftect performance. Then pass to next card.
     - id: 'cr_setup_segment_names_rule'
       title: 'Segmentation Parameters'
-      type: 'rule'
-      query_url: setup_segment_names.sql
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/segment_names?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
-      results:
-          - true:
-              next_card: 'cr_setup_segment_names_text'
-              button_location: 'right'
-              button_text: 'Acknowledge'
-          - false:
+      action:
+        ask_user: false
+        function: detectChangeInCount
+        additional_arguments: segment_name
+        result:
+          true:
+              description: "It seems that someone added/deleted a segment: {values} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               next_card: 'cr_setup_banners'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'cr_setup_banners'
+
 # 20
-    - id: 'cr_setup_segment_names_text'
-      title: 'Segmentation Parameters'
-      type: 'text'
-      query_url: setup_segment_names.sql
-      description: 'It seems that someone added / deleted a segment: {segment_name} on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_banners'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+    # - id: 'cr_setup_segment_names_text'
+    #   title: 'Segmentation Parameters'
+    #   type: 'text'
+    #   query_url: setup_segment_names.sql
+    #   description: 'It seems that someone added / deleted a segment: {segment_name} on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+    #   results:
+    #       - true:
+    #           next_card: 'cr_setup_banners'
+    #           button_location: 'right'
+    #           button_text: 'Acknowledge'
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
@@ -338,32 +399,40 @@ cards:
 # Get dataframe from setup_banners.sql
 # Rule: - If count(distinct banner_name) is stable day over day --> Pass to next check
 #       - If  count(distinct banner_name) is not stable day over day --> Let the user Acknowledge that the banners that were enabled / disabled and that it might affect performance. Then pass to next card.
-    - id: 'cr_setup_banners_rule'
-      title: 'Number of banners live'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    - id: 'cr_setup_banners'
+      title: 'Number of Banners Live'
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
-      answers:
-          - true:
-              next_card: 'cr_setup_banners_text'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-          - false:
+      action:
+        ask_user: false
+        function: detectChangeInValue
+        additional_arguments: banner_count
+        result:
+          true:
+              description: "It looks that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              follow_up:
+                function: graphData
+                additional_arguments: # the first argument (the data from the query) will automatically be used
+                    - "banner_count" # the column to graph
+                    - "number" # how to format the y-axis
               next_card: 'cr_setup_feed_import_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+              button_location: 'center'
+              button_text: 'Acknowledge'
+          false:
+              next_card: 'cr_setup_feed_import_rule'
+
 # 22
 # Display number of banners live per day
-    - id: 'cr_setup_banners_text'
-      title: 'Number of banners live'
-      type: 'graph'
-      query_url: http://watson/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-      description: 'It looks that someone (dis)activated some banner formats on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-          - true:
-              next_card: 'cr_setup_feed_import_rule'
-              button_location: 'right'
-              button_text: 'Acknowledge'
+    # - id: 'cr_setup_banners_text'
+    #   title: 'Number of banners live'
+    #   type: 'graph'
+    #   query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    #   description: 'It looks that someone (dis)activated some banner formats on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+    #   results:
+    #       - true:
+    #           next_card: 'cr_setup_feed_import_rule'
+    #           button_location: 'right'
+    #           button_text: 'Acknowledge'
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
@@ -373,48 +442,55 @@ cards:
 # 23
 # Get dataframe from setup_feed_QS.sql
 # Rule: - If max(FeedImport) >= current_date - 10. Pass to next card
-#       - If  max(FeedImport) >= current_date - 10 --> Let the user Acknowledge that the last feed import was more than 10 days ago and it might afftect performance. Then pass to next card.
+#       - If  max(FeedImport) < current_date - 10 --> Let the user Acknowledge that the last feed import was more than 10 days ago and it might afftect performance. Then pass to next card.
     - id: 'cr_setup_feed_import_rule'
-      title: 'Feed check'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      title: 'Feed Check'
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/feed_import?client_id={client_id}&start_date={start_date}&end_date={end_date}
       description:
-      answers:
-        - true:
-              next_card: 'cr_setup_feed_quality_graph'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-        - false:
+      action:
+        ask_user: false
+        function: isRecent
+        additional_arguments: 10 # threshold (make this 0 to test)
+        result:
+          true:
               next_card: 'cr_perf_deduplication_ratio_rule'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+          false:
+              next_card: 'cr_setup_feed_quality_graph'
+
 # 24
 # Display FeedQuality per day
     - id: 'cr_setup_feed_quality_graph'
       title: 'Feed Check'
-      type: 'graph'
-      query_url: http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
-      description: 'Did the feed quality changed recently?'
-      results:
-        - true:
-            next_card: 'cr_feed_quality_text'
-            button_location: 'right'
-            button_text: 'Yes'
-        - false:
-            next_card: 'cr_perf_deduplication_ratio_rule'
-            button_location: 'right'
-            button_text: 'No'
-# 25
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      description: 'Has the feed quality changed recently?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          - feed_quality
+          - percent
+        result:
+          true:
+              next_card: 'cr_feed_quality_text'
+              button_location: right
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_deduplication_ratio_rule'
+              button_location: left
+              button_text: No
+
+# # 25
     - id: 'cr_feed_quality_text'
       title: 'Feed Check'
-      type: 'text'
-      query_url: http://watson/api/v1/query/sherlock/setup/feed_quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      query_url:
       description: 'Feed quality can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-        - true:
-            next_card: 'cr_perf_deduplication_ratio_rule'
-            button_location: 'right'
-            button_text: 'Acknowledge'
+      action:
+        ask_user: true
+        result:
+          true:
+              next_card: 'cr_perf_deduplication_ratio_rule'
+              button_location: center
+              button_text: Acknowledge
 
 
 ################################################################################################################################################################################
@@ -427,45 +503,54 @@ cards:
 #       - If  dedup_ratio varies by more than 30% day over day at least one day --> Let the user Acknowledge that the dedup ratio is volatile and that it might afftect performance. Then pass to next card.
     - id: 'cr_perf_deduplication_ratio_rule'
       title: 'Attribution Model'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description:
-      answers:
-        - true:
+      action:
+        ask_user: false
+        function: isPercentChangeStable
+        additional_arguments:
+          - dedup_ratio # Column name for the check
+          - 0.30 # threshold (make this 0 to test)
+        result:
+          true:
+              next_card: 'cr_perf_website_sales_share_graph'
+          false:
               next_card: 'cr_perf_deduplication_ratio_graph'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'True' ------ NO BUTTON AS IT IS A RULE
-        - false:
-              next_card: 'cr_perf_Website_sales_share_graph'
-              # button_location: 'right' ------ NO BUTTON AS IT IS A RULE
-              # button_text: 'False' ------ NO BUTTON AS IT IS A RULE
+
 # 27
 # Display deduplication ratio per day
     - id: 'cr_perf_deduplication_ratio_graph'
       title: 'Attribution Model'
-      type: 'graph'
-      query_url: http://watson/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description: 'Seems that the dedup ratio is volatile. Do you notice any unusual variation looking at recent data?'
-      results:
-        - true:
-            next_card: 'cr_perf_deduplication_ratio_text'
-            button_location: 'right'
-            button_text: 'Yes'
-        - false:
-            next_card: 'cr_perf_Website_sales_share_graph'
-            button_location: 'right'
-            button_text: 'No'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          - dedup_ratio
+          - percent
+        result:
+          true:
+              next_card: 'cr_perf_deduplication_ratio_text'
+              button_location: right
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_website_sales_share_graph'
+              button_location: left
+              button_text: No
+
 # 28
     - id: 'cr_perf_deduplication_ratio_text'
       title: 'Attribution Model'
-      type: 'text'
       query_url:
-      description: 'A consistant change of the dedup ratio can impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      results:
-        - true:
-            next_card: 'cr_perf_Website_sales_share_graph'
-            button_location: 'right'
-            button_text: 'Acknowledge'
+      description: 'A consistent change of the dedup ratio can impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+      action:
+        ask_user: true
+        result:
+          true:
+              next_card: 'cr_perf_website_sales_share_graph'
+              button_location: center
+              button_text: Acknowledge
 
 
 ################################################################################################################################################################################
@@ -477,31 +562,35 @@ cards:
 # No Rule
 # If share of total sales constant --> No issue, it is a seasonality issue
 # If share of total website sales decreases / Increase --> Keep investigating
-    - id: 'cr_perf_Website_sales_share_graph'
-      title: 'Share of total Website sales'
-      type: 'rule'
-      query_url: http://watson/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+    - id: 'cr_perf_website_sales_share_graph'
+      title: 'Share of Total Website Sales'
+      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description: 'Is the share of sales comming from this campaign stable on the client side?'
-      answers:
-        - true:
-              next_card: 'cr_perf_Website_sales_share_text_true'
-              button_location: 'right'
-              button_text: 'Yes'
-        - false:
-              next_card: ''
-              button_location: 'right'
-              button_text: 'No'
+      action:
+        ask_user: false
+        function: detectChangeInValue
+        additional_arguments: percentage_of_website
+        result:
+          true:
+              description: "If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client."
+              next_card: 'end'
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'end'
+              button_location: center
+              button_text: Finish
 # 30
-    - id: 'cr_perf_Website_sales_share_text_true'
-      title: 'Share of total Website sales'
-      type: 'Text'
-      query_url:
-      description: 'If the share of sales comming from this campaign over your total website sales, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.'
-      results:
-        - true:
-            next_card: ''
-            button_location: 'right'
-            button_text: 'Acknowledge'
+    # - id: 'cr_perf_Website_sales_share_text_true'
+    #   title: 'Share of total Website sales'
+    #   type: 'Text'
+    #   query_url:
+    #   description: 'If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.'
+    #   results:
+    #     - true:
+    #         next_card: end
+    #         button_location: right
+    #         button_text: Acknowledge
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
@@ -509,9 +598,6 @@ cards:
 
 
 # 17
-    - id: 'cr_end'
-      title: 'Finish!'
-      type: 'text'
-      query_url:
-      description: "Seems that you're done! Thanks for the investigation and feel free to discuss it with your TAM or AX if needed"
-      results:
+    - id: 'end'
+      title: 'Finished!'
+      description: "We hope you enjoyed using Sherlock for the investigation; feel free to discuss it with your TAM or AX if needed."
