@@ -37,7 +37,9 @@ Investigate {{ metric.upper() }}
         <span id="card_title" class="card-title">Hang On...</span>
         <p id="card_description">Please be patient while we fetch the data to help you troubleshoot this issue.</p>
         <br>
-        <canvas id="chart" style="display: none;"></canvas>
+        <div id="graphs">
+          <canvas id="graph-1" style="display: none;"></canvas>
+        </div>
         <div id="loading_indicator" class="preloader-wrapper big active" style="display: none;">
           <div class="spinner-layer spinner-blue-only">
             <div class="circle-clipper left">

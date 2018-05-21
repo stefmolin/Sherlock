@@ -6,7 +6,7 @@ import logging
 try:
   from __main__ import app
 except ImportError:
-  from __init__ import app
+  from app import app
 
 logger = logging.getLogger('Sherlock')
 

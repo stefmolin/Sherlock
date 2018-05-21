@@ -1,7 +1,5 @@
-<img src="screenshots/sherlock_logo_white_on_black.png?raw=true" align="center" width="300" alt="Sherlock: Performance Troubleshooting Web App">
-
-# Sherlock: Performance Troubleshooting Wizard
-Flask + JavaScript web app for investigating performance issues.
+# Sherlock
+Troubleshoot issues on certain metrics using a web app.
 
 ## Defining a Decision Tree
 
@@ -20,12 +18,12 @@ Flask + JavaScript web app for investigating performance issues.
 13. Cards that are meant to display text only and require buttons should define `ask_user` to true, since the user needs to answer to move forward to the next card.
 
 ### Sample Decision Tree
-Here is an example of a decision tree defined in YAML. Note that Sherlock needs the decision tree as a JSON, so you will need to convert it first.
+Here is an example of a decision tree defined in YAML. Note that Sherlock needs the decision tree as a JSON, so you will need to convert it first. YAML is easier to read than JSON, so it is recommended you make your decision trees in YAML and then convert them; you can keep your YAML versions in `static/decision_trees/YAML`.
 ```
 cards:
     - id: 'start'
       title: 'Checking Number of Campaigns...'
-      query_url: http://127.0.0.1:53865/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      query_url: /api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
       description:
       action:
         ask_user: false
@@ -49,7 +47,7 @@ cards:
 
 ### Converting YAML Decision Tree into JSON Decision Trees
 1. Convert your YAML into JSON. There are many converters available online; I like [this one](https://codebeautify.org/yaml-to-json-xml-csv). This will won't let you convert it until your YAML is valid.
-2. Either create a new JSON decision tree file in `static/decision_trees` by copying one of the other ones, or modify a current one by pasting your JSON from line 3 down, but make sure you keep the last line. DO NOT CHANGE ANYTHING ELSE. Note that the name of the tree variable cannot be changed or Sherlock won't be able to use it. You can name the file whatever you want though.
+2. Either create a new JSON decision tree file in `static/decision_trees` by copying one of the other ones/modify a current one by pasting your JSON from line 3 down, or using the template in `static/decision_trees/template.json`, but make sure you keep the last line. DO NOT CHANGE ANYTHING ELSE. Note that the name of the tree variable cannot be changed or Sherlock won't be able to use it. You can name the file whatever you want though.
 3. If you are adding a new metric, you will need to make sure that Sherlock can allow people to select that metric (see `templates/parameter_entry.html`) and that Sherlock can then read in the metric (see `templates/investigate.html`).
 
 ## Functions
@@ -96,10 +94,10 @@ Check if percent change day over day for a specific column is too much. Addition
 Checks if the max value is equal to the provided value. Additional arguments are `column` for the column to check from the data and `value`.
 
 ### graphData
-This isn't a rule, but it can also be used in the `function` attribute of the card definition. Additional arguments are `columnToGraph` for the column of the data you want to graph (dates must be the column `day`) and `yAxisFormat` for the type of formatting to use on the y-axis values (i.e. percent, currency, number, etc.)
+This isn't a rule, but it can also be used in the `function` attribute of the card definition. Additional arguments are `columnToGraph` for the column of the data you want to graph (dates must be the column `day`), `yAxisFormat` for the type of formatting to use on the y-axis values (i.e. percent, currency, number, etc.), `graphType` for the type of graph you want (i.e. 'line' or 'bar'), and `isDatetime` a boolean indicating if the x-axis is composed of datetimes (false means just dates).
 
 ## Requirements
-Python 3, Flask, [Watson API](https://github.com/stefmolin/watson-api)
+Docker, [Watson API](https://github.com/stefmolin/watson-api)
 
 ## Disclaimer
 This is a work-in-progress and is being anonymized for GitHub.

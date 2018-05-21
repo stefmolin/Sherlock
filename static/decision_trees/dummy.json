@@ -5,7 +5,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "start",
 			"title": "Checking Number of Campaigns...",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -27,7 +27,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_sampling_ratio_rule",
 			"title": "Sampling Ratio",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -40,7 +40,9 @@ const decision_tree = JSON.parse(`
 							"function": "graphData",
 							"additional_arguments": [
 								"campaign_sampling_ratio",
-								"percent"
+								"percent",
+                "line",
+                false
 							]
 						},
 						"next_card": "cr_setup_capping_rule",
@@ -56,7 +58,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_capping_rule",
 			"title": "Capping Parameters",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -85,7 +87,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_segmentation_enabled_rule",
 			"title": "Segmentation Parameters",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/segmentation_is_enabled?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/segmentation_is_enabled?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -110,7 +112,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_segment_names_rule",
 			"title": "Segmentation Parameters",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/segment_names?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/segment_names?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -132,7 +134,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_banners",
 			"title": "Number of Banners Live",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -145,7 +147,9 @@ const decision_tree = JSON.parse(`
 							"function": "graphData",
 							"additional_arguments": [
 								"banner_count",
-								"number"
+								"number",
+                "line",
+                false
 							]
 						},
 						"next_card": "cr_setup_feed_import_rule",
@@ -161,7 +165,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_feed_import_rule",
 			"title": "Feed Check",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/feed_import?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/feed_import?client_id={client_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -180,14 +184,16 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_setup_feed_quality_graph",
 			"title": "Feed Check",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}",
 			"description": "Has the feed quality changed recently?",
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
 				"additional_arguments": [
 					"feed_quality",
-					"percent"
+					"percent",
+          "line",
+          false
 				],
 				"result": {
 					"true": {
@@ -222,7 +228,7 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_perf_deduplication_ratio_rule",
 			"title": "Attribution Model",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": null,
 			"action": {
 				"ask_user": false,
@@ -244,14 +250,16 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_perf_deduplication_ratio_graph",
 			"title": "Attribution Model",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"query_url": "/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
 			"description": "Seems that the dedup ratio is volatile. Do you notice any unusual variation looking at recent data?",
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
 				"additional_arguments": [
 					"dedup_ratio",
-					"percent"
+					"percent",
+          "line",
+          false
 				],
 				"result": {
 					"true": {
@@ -286,8 +294,8 @@ const decision_tree = JSON.parse(`
 		{
 			"id": "cr_perf_website_sales_share_graph",
 			"title": "Share of Total Website Sales",
-			"query_url": "http://127.0.0.1:53865/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
-			"description": "Is the share of sales comming from this campaign stable on the client side?",
+			"query_url": "/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the share of sales coming from this campaign stable on the client side?",
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInValue",

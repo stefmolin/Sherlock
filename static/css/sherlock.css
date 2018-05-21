@@ -245,7 +245,7 @@ input[type="number"] {
   height: 100%;
 }
 
-#chart {
+#graphs canvas {
   background-color: #30395e;
   margin-right:20px;
   margin-top: 10px;

@@ -186,11 +186,12 @@ function makeRequest(url, method, dataProcessor, errorHandler, ...dataProcessorA
 function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
   const time_between_attempts_ms = 5000;
-  fetch(url, {
+  const host = "http://127.0.0.1:53865"; // TODO switch to server location
+  fetch(host + url, {
     method: 'post'
   })
   .then(function(response) {
-    console.log(response.status);
+    //console.log(response.status);
     if (response.ok) {
       return response.json();
     } else if (attempts >= max_attempts_allowed) {
@@ -201,7 +202,7 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
   })
   .then((data) => setTimeout(getRequest, 1000, data.result, 0, dataProcessor, errorHandler, ...dataProcessorArgs))
   .catch(function(error){
-    console.log(error);
+    //console.log(error);
     attempts += 1;
     if (error instanceof TimeoutError || attempts >= max_attempts_allowed) {
       // no attempts left; show error
@@ -209,7 +210,7 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
       errorHandler();
     } else {
       // wait and try request again
-      console.log('Trying POST again ' + url);
+      //console.log('Trying POST again ' + host + url);
       setTimeout(postRequest, time_between_attempts_ms,
         url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs);
     }
@@ -220,9 +221,10 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
 function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
   const time_between_attempts_ms = 5000;
-  fetch(url)
+  const host = "http://127.0.0.1:53865"; // TODO switch to server location
+  fetch(host + url)
   .then(function(response) {
-    console.log(response.status);
+    //console.log(response.status);
     if (response.status === 200) {
       return response.json();
     } else if (attempts >= max_attempts_allowed) {
@@ -233,7 +235,7 @@ function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessor
   })
   .then((data) => dataProcessor(data.results, ...dataProcessorArgs))
   .catch(function(error){
-    console.log(error);
+    //console.log(error);
     attempts += 1;
     if (error instanceof TimeoutError || attempts >= max_attempts_allowed) {
       // no attempts left; show error
@@ -241,7 +243,7 @@ function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessor
       errorHandler();
     } else {
       // wait and try request again
-      console.log("Trying GET request again " + url);
+      //console.log("Trying GET request again " + host + url);
       setTimeout(getRequest, time_between_attempts_ms,
         url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs);
     }
@@ -274,8 +276,7 @@ function lookupCampaigns() {
     if (document.getElementById("campaign_selector").style.display !== "none") {
       toggleElement("campaign_selector"); // show the options
     }
-    // TODO this will need to be changed to the Docker version to access Watson
-    const url = "http://127.0.0.1:53865/api/v1/query/sherlock/campaign_lookup?client_id=" + client_id;
+    const url = "/api/v1/query/sherlock/campaign_lookup?client_id=" + client_id;
     makeRequest(url, "POST", fillInCampaignOptions, campaignsUnavailable);
   } else {
     console.log(client_id);

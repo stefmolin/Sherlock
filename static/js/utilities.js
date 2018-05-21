@@ -30,8 +30,8 @@ function filterDates(dates){
 ********         GRAPH FUNCTIONS          *********
 **************************************************/
 // Note that you need Chart.js, Numeral.js, and Moment.js for this function
-function graphData(data, columnToGraph, yAxisFormat){
-  var chart = document.getElementById('chart');
+function graphData(data, columnToGraph, yAxisFormat, graphType, isDatetime){
+  var chart = document.getElementById('graph-1');
   var ctx = chart.getContext('2d');
   chart.style.display = "inline-block";
 
@@ -42,7 +42,7 @@ function graphData(data, columnToGraph, yAxisFormat){
     values.push(data[i][columnToGraph]);
   }
   var myChart = new Chart(ctx, {
-    type: 'line',
+    type: graphType,
     data: {
       // x-axis
       labels: date_list,
@@ -81,7 +81,9 @@ function graphData(data, columnToGraph, yAxisFormat){
               if(x_axis_ticks[index] == ""){
                 var entry;
                 entry = null;
-              } else{
+              } else if(isDatetime) {
+                entry = moment(x_axis_ticks[index], "YYYY-MM-DD H:mm:ss").format('H:mm dd, MMM D');
+              } else {
                 entry = moment(x_axis_ticks[index], "YYYY-MM-DD").format('dd, MMM D');
               }
               return entry;
