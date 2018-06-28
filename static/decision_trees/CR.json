@@ -1,7 +1,6 @@
 // Don't remove this first line (paste JSON below)
 const decision_tree = JSON.parse(`
 {
-
 	"cards": [
 		{
 			"id": "start",
@@ -35,9 +34,11 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInValue",
-				"additional_arguments": {
-					"columns": "campaign_sampling_ratio"
-				},
+				"additional_arguments": [
+					{
+						"columns": "campaign_sampling_ratio"
+					}
+				],
 				"result": {
 					"true": {
 						"description": "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
@@ -179,7 +180,7 @@ const decision_tree = JSON.parse(`
 			"id": "cr_setup_feed_quality_graph",
 			"title": "Feed Check",
 			"query_url": "/api/v1/query/sherlock/setup/quality_score?partner_id={partner_id}&start_date={start_date}&end_date={end_date}",
-			"description": "Has the feed quality changed recently?",
+			"description": "Has the feed quality stable over time?",
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
@@ -192,12 +193,12 @@ const decision_tree = JSON.parse(`
 				},
 				"result": {
 					"true": {
-						"next_card": "cr_feed_quality_text",
+						"next_card": "cr_perf_deduplication_ratio_rule",
 						"button_location": "right",
 						"button_text": "Yes"
 					},
 					"false": {
-						"next_card": "cr_perf_deduplication_ratio_rule",
+						"next_card": "cr_feed_quality_text",
 						"button_location": "left",
 						"button_text": "No"
 					}
@@ -321,17 +322,27 @@ const decision_tree = JSON.parse(`
 				"function": "isPercentChangeStable",
 				"additional_arguments": {
 					"column": "percentage_of_website",
-					"threshold": 0.25
+					"threshold": 0
 				},
 				"result": {
 					"true": {
-						"description": "If the share of sales coming from this campaign over your total website sales is stable, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.",
-						"next_card": "cr_perf_landing_rate_graph",
-						"button_location": "center",
-						"button_text": "OK, Keep investigating (there might be no other issue)."
+						"next_card": "cr_perf_landing_rate_graph"
 					},
 					"false": {
-						"next_card": "cr_perf_landing_rate_graph"
+						"description": "If the share of sales coming from this campaign over your total website sales is stable, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.",
+						"follow_up": {
+							"function": "graphData",
+							"additional_arguments": {
+								"columnToGraph": "percentage_of_website",
+								"yAxisFormat": "percent",
+								"graphType": "line",
+								"isDatetime": false,
+								"graphAsIndex": false
+							}
+						},
+						"next_card": "cr_perf_landing_rate_graph",
+						"button_location": "right",
+						"button_text": "OK, Keep investigating"
 					}
 				}
 			}
@@ -370,21 +381,16 @@ const decision_tree = JSON.parse(`
 			"title": "Landing rate evolution",
 			"query_url": null,
 			"description": "A volatile Landing Rate often impacts campaign performance. It is generally linked to an issue with In App or Cross device. Please investigate further on this link: https://tableau.yourcompany.com/#/<report> and confirm the issue with your TAM or AX.",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "cr_perf_device_graph"
-						},
-						{
-							"button_location": "right"
-						},
-						{
-							"button_text": "OK, Keep investigating (click here after opening the link above)"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_perf_device_graph",
+						"button_location": "right",
+						"button_text": "OK, Keep investigating (click here after opening the link above)"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "cr_perf_device_graph",
@@ -424,27 +430,22 @@ const decision_tree = JSON.parse(`
 			"title": "CR evolution per device",
 			"query_url": null,
 			"description": "A dip in performance on a single device narrows down the issue. Please keep investigating but let you TAM / AX know about this when you escalate the issue.",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "cr_perf_CPC_evolution_graph"
-						},
-						{
-							"button_location": "right"
-						},
-						{
-							"button_text": "OK, Keep investigating"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_perf_CPC_evolution_graph",
+						"button_location": "right",
+						"button_text": "OK, Keep investigating"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "cr_perf_CPC_evolution_graph",
 			"title": "CPC evolution",
 			"query_url": "/api/v1/query/sherlock/performance/CPC_evolution?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
-			"description": "Are CPCs stable over time on this campaign?",
+			"description": "Are CPCs stable over time on this campaign? Please, remind that these are CPC indexed on your 1st day of investigation",
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
@@ -474,21 +475,16 @@ const decision_tree = JSON.parse(`
 			"title": "CPC evolution",
 			"query_url": null,
 			"description": "Seems that your CPC are volatile. Let's check your smoothing settings. You can also discuss it with your TAM or AX as changing your CPC too often can significantly affect your campaign performances.",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "cr_setup_smoothing_rule"
-						},
-						{
-							"button_location": "center"
-						},
-						{
-							"button_text": "OK"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_setup_smoothing_rule",
+						"button_location": "center",
+						"button_text": "OK"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "cr_setup_smoothing_rule",
@@ -559,21 +555,16 @@ const decision_tree = JSON.parse(`
 			"title": "Bid evolution",
 			"query_url": null,
 			"description": "Seems that your bids are very volatile. Let's investigate further if this is due to vCPC, the feedbackloop factor or a prediction issue.",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "cr_setup_VCPC_rule"
-						},
-						{
-							"button_location": "center"
-						},
-						{
-							"button_text": "OK"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_setup_VCPC_rule",
+						"button_location": "center",
+						"button_text": "OK"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "cr_setup_VCPC_rule",
@@ -644,21 +635,16 @@ const decision_tree = JSON.parse(`
 			"title": "Feedbackloop Evolution",
 			"query_url": null,
 			"description": "Seems that your feedbackloop is going wild. Let's check how prediction has been evolving too before escalating",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "cr_perf_prediction_factor_graph"
-						},
-						{
-							"button_location": "center"
-						},
-						{
-							"button_text": "OK"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_perf_prediction_factor_graph",
+						"button_location": "center",
+						"button_text": "OK"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "cr_perf_prediction_factor_graph",
@@ -694,21 +680,16 @@ const decision_tree = JSON.parse(`
 			"title": "Prediction factor evolution",
 			"query_url": null,
 			"description": "Seems that your prediction factor is going wild. Please, check with your AX to understand what might have caused this and resolve the issue.",
-			"result": [
-				{
-					"true": [
-						{
-							"next_card": "end"
-						},
-						{
-							"button_location": "right"
-						},
-						{
-							"button_text": "Ok, finish investigation"
-						}
-					]
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "end",
+						"button_location": "right",
+						"button_text": "Ok, finish investigation"
+					}
 				}
-			]
+			}
 		},
 		{
 			"id": "end",

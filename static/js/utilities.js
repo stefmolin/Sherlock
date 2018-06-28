@@ -135,7 +135,7 @@ function graphData(data, options){
                   var entry;
                   entry = null;
                 } else if(isDatetime) {
-                  entry = moment(x_axis_ticks[index], "YYYY-MM-DD H:mm:ss").format('H:mm dd, MMM D');
+                  entry = moment(x_axis_ticks[index], "YYYY-MM-DD H:mm:ss").format('D-MMM');
                 } else {
                   entry = moment(x_axis_ticks[index], "YYYY-MM-DD").format('D-MMM');
                 }
