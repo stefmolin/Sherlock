@@ -12,7 +12,7 @@ Investigate {{ metric.upper() }}
   <script type="text/javascript" src="{{ url_for('static', filename='js/vendor/Chart.min.js') }}"></script>
   <!-- Make this dynamically pick the JSON to read in based on the metric being investigated -->
   {% if metric == 'cr' %}
-    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/CR.json') }}"></script>
   {% elif metric == 'ctr' %}
     <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
   {% elif metric == 'cos' %}
@@ -22,6 +22,10 @@ Investigate {{ metric.upper() }}
   {% elif metric == 'rext' %}
     <script type="text/javascript" src="{{ url_for('static', filename='decision_trees/dummy.json') }}"></script>
   {% endif %}
+{% endblock %}
+
+{% block sherlock_link %}
+  {{ url_for('parameter_entry') }}
 {% endblock %}
 
 {% block links %}

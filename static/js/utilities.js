@@ -1,18 +1,12 @@
 /**************************************************
 ********        UTILITY FUNCTIONS         *********
 **************************************************/
-String.prototype.format = function() {
-   var content = this;
-   for (var key in arguments[0]) { // replace arguments using a dictionary provided as the first argument
-      var replacement = '{' + key + '}';
-      content = content.replace(replacement, arguments[0][key]);
-   }
-   return content;
-};
-
-function filterDates(dates){
+function filterDates(dates, isDatetime){
   var start_date = dates[0];
-  var date_break = 14;
+  var date_break = 3;
+  if (isDatetime) {
+    date_break = date_break*24; // every hour
+  }
   dates.reverse();
   for(i = 0; i < dates.length; i++){
   	if(i % date_break !== 0){
@@ -44,6 +38,12 @@ Parameters: json = the query result from the API where each row of the result is
 
 Returns: Nothing. Creates graphs in the <div> with ID "graphs" (will create the <canvas> tags as needed).*/
 function graphData(data, options){
+  // if empty, show the error page
+  if (data == undefined || data == false || data == null) {
+    dataUnavailable();
+    return 'error';
+  }
+
   let columnToGraph = options.columnToGraph;
   let yAxisFormat = options.yAxisFormat;
   let graphType = options.graphType;
@@ -61,15 +61,16 @@ function graphData(data, options){
   for (var col_index = 0; col_index < columnToGraph.length; col_index ++){
     let element_id = 'graph-' + col_index;
     var chart = document.getElementById(element_id);
-    if (chart === null) {
-      var canvas = document.createElement('canvas');
-      canvas.id = element_id;
-
-      var graphs_div = document.getElementById("graphs");
-      graphs_div.appendChild(canvas);
-
-      var chart = document.getElementById(element_id);
+    if (chart !== null) {
+      chart.remove();
     }
+    var canvas = document.createElement('canvas');
+    canvas.id = element_id;
+
+    var graphs_div = document.getElementById("graphs");
+    graphs_div.appendChild(canvas);
+
+    var chart = document.getElementById(element_id);
 
     var ctx = chart.getContext('2d');
     chart.style.display = "inline-block";
@@ -129,14 +130,14 @@ function graphData(data, options){
               autoSkip: false,
               callback: function(value, index){ //value is the first argument used with this function index is second; can't change
                 var x_axis_ticks = [];
-                x_axis_ticks = filterDates(date_list);
+                x_axis_ticks = filterDates(date_list, isDatetime);
                 if(x_axis_ticks[index] == ""){
                   var entry;
                   entry = null;
                 } else if(isDatetime) {
                   entry = moment(x_axis_ticks[index], "YYYY-MM-DD H:mm:ss").format('H:mm dd, MMM D');
                 } else {
-                  entry = moment(x_axis_ticks[index], "YYYY-MM-DD").format('dd, MMM D');
+                  entry = moment(x_axis_ticks[index], "YYYY-MM-DD").format('D-MMM');
                 }
                 return entry;
               }
@@ -163,6 +164,10 @@ function graphData(data, options){
                     format_string = '0,0.[00]a%';
                   } else if(yAxisFormat.toLowerCase() === 'currency'){
                     // currency, show decimals
+                    format_string = '0,0.[00]a';
+                  }
+                  else if(yAxisFormat.toLowerCase() === 'decimal'){
+                    // show decimals
                     format_string = '0,0.[00]a';
                   }
                   else {

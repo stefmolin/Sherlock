@@ -129,26 +129,11 @@ if (providedMetric !== 'undefined') {
   }
 }
 
-// show proper buttons based on initial input
-function initializeButtons(values) {
-  let partner_id = values.partnerID;
-  let client_id = values.clientID;
-  if (partner_id && client_id) {
-    turnOff(['partner_lookup_button', 'client_lookup_button']);
-    turnOn(['campaign_lookup_button']);
-  } else if (!partner_id && client_id) {
-    turnOff(['client_lookup_button', 'campaign_lookup_button']);
-    turnOn(['partner_lookup_button']);
-  } else if (partner_id && !client_id) {
-    turnOff(['partner_lookup_button', 'campaign_lookup_button']);
-    turnOn(['client_lookup_button']);
-  } else {
-    turnOff(['campaign_lookup_button']);
-    turnOn(['partner_lookup_button']);
-  }
-}
-
+// handle buttons when input is provided in the URL query string
 initializeButtons({partnerID : {{partner_id}}, clientID : {{client_id}}});
+
+// handle buttons when the input is still on the page due to a refresh
+initializeButtons({partnerID : document.getElementById("partner_id").value, clientID : document.getElementById("client_id").value});
 
 var today = new Date();
 var yesterday = new Date(today.setDate(today.getDate() - 1));

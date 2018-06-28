@@ -15,7 +15,7 @@
   <body {% block onload_events %}{% endblock %}>
     <nav>
       <div class="nav-wrapper darkest-background">
-        <a href="#" class="brand-logo"> <!--TODO change this to go to the Confluence page for Sherlock"-->
+        <a href="{% block sherlock_link %}#{% endblock %}" class="brand-logo"> <!--TODO change this to go to the Confluence page for Sherlock"-->
           <img src="{{ url_for('static', filename='images/sherlock_logo_white.png') }}" alt="Sherlock">
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down">

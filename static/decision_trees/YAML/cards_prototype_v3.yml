@@ -52,28 +52,14 @@ cards:
               description: "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR."
               next_card: 'cr_setup_sampling_ratio_rule'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
           false:
               next_card: 'cr_setup_sampling_ratio_rule'
 
-#
-# # 2
-#     - id: 'cr_setup_campaign_number_text'
-#       title: 'Number of Campaigns'
-#       type: 'text'
-#       query_url: /api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}
-#       description: "Seems that someone launched/paused (a) campaign(s): list{campaign_name} on this account on {day}. This can affect your campaign's CR"
-#       answers:
-#           - true:
-#               next_card: 'cr_setup_sampling_ratio_rule'
-#               button_location: 'right'
-#               button_text: 'Acknowledge'
-
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
-# 3
 # Get dataframe from setup_sampling_ratio.sql
 # Rule: - If the sampling ratio did not change -> pass to next card
 #       - If the sampling ratio changed --> show graph to end user with the evolution to confirm it is normal and let user know this might affect performance. Then pass to next card.
@@ -83,9 +69,9 @@ cards:
       description:
       action:
         ask_user: false
-        function: detectChangeInCount
+        function: detectChangeInValue
         additional_arguments:
-          columnToCount: "campaign_sampling_ratio"
+          columns: "campaign_sampling_ratio"
         result:
           true:
               description: "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
@@ -93,37 +79,25 @@ cards:
                 function: graphData
                 additional_arguments: # the first argument (the data from the query) will automatically be used
                     columnToGraph: "campaign_sampling_ratio" # the column to graph
-                    yAxisFormat: "percent" # how to format the y-axis
-                    graphType: "line" # graph type
+                    yAxisFormat: "percent" # how to format the y-axis (percent, currency, number etc.)
+                    graphType: "line" # graph type (line or bar)
                     isDatetime: false # dates only not datetimes
-                    graphAsIndex: false # don't graph values as index (this field is optional)
+                    graphAsIndex: false # Indexed graph (day 1 = 100)
               next_card: 'cr_setup_capping_rule'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
           false:
               next_card: 'cr_setup_capping_rule'
 
-# # 4
-#     - id: 'cr_setup_sampling_ratio_graph'
-#       title: 'Sampling Ratio'
-#       type: 'graph'
-#       query_url: /api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the sampling ratio on {campaign_name} the {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#         - true:
-#             next_card: 'cr_setup_capping_starting_date_rule'
-#             button_location: 'right'
-#             button_text: 'Acknowledge'
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
 
-### Posasibility to add a cart to check straight away if there were changes in the capping setup. If not, proceded to next card and otherwise deed dive into campaign capping
+### Possibility to add a cart to check straight away if there were changes in the capping setup. If not, proceded to next card and otherwise deed dive into campaign capping
 
 
-# 5
 # Get dataframe from setup_capping.sql
 # Rule: - If none of the campaign_capping_starting_date changed --> pass to next card
 #       - If some campaign_capping_starting_date changed --> Let the user Acknowledge that the capping starting date changed and that it might afftect performance. Then pass to next card.
@@ -147,188 +121,14 @@ cards:
               description: "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               next_card: 'cr_setup_segmentation_enabled_rule'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
           false:
               next_card: 'cr_setup_segmentation_enabled_rule'
-# 6
-    # - id: 'cr_setup_capping_starting_date_text'
-    #   title: 'Capping Parameters'
-    #   type: 'text'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description: 'It seems that someone changed the capping start date {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-    #   results:
-    #       - true:
-    #           next_card: 'cr_setup_capping_ending_date_rule'
-    #           button_location: 'right'
-    #           button_text: 'Acknowledge'
-
-# 7
-# Get dataframe from setup_capping.sql
-# Rule: - If none of the campaign_capping_ending_date changed --> pass to next card
-#       - If some campaign_capping_ending_date changed --> Let the user Acknowledge that the capping ending date changed and that it might afftect performance. Then pass to next card.
-    # - id: 'cr_setup_capping_ending_date_rule'
-    #   title: 'Capping Parameters'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description:
-    #   action:
-    #     function: detectChangeInCount
-    #     additional_arguments: campaign_capping_ending_day
-    #     result:
-    #       true:
-    #           description: "It seems that someone changed the capping end date on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-    #           next_card: "cr_setup_daily_capping_rule"
-    #           button_location: "center"
-    #           button_text: "Acknowledge"
-    #       false:
-    #           next_card: "cr_setup_daily_capping_rule"
-
-# # 8
-#     - id: 'cr_setup_capping_ending_date_text'
-#       title: 'Capping Parameters'
-#       type: 'text'
-#       query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the capping end date on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#           - true:
-#               next_card: 'cr_setup_daily_capping_rule'
-#               button_location: 'right'
-#               button_text: 'Acknowledge'
-
-# 9
-# Get dataframe from setup_capping.sql
-# Rule: - If none of the daily_capping changed --> pass to next card
-#       - If some daily_capping changed --> Let the user Acknowledge that the daily capping changed and that it might afftect performance. Then pass to next card.
-    # - id: 'cr_setup_daily_capping_rule'
-    #   title: 'Capping Parameters'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description:
-    #   action:
-    #     function: detectChangeInCount
-    #     additional_arguments: daily_capping
-    #     result:
-    #       true:
-    #           description: "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-    #           next_card: "cr_setup_campaign_capping_since_last_visit_rule"
-    #           button_location: "center"
-    #           button_text: "Acknowledge"
-    #       false:
-    #           next_card: "cr_setup_segmentation_enabled_rule"
-
-# # 10
-#     - id: 'cr_setup_daily_capping_text'
-#       title: 'Capping Parameters'
-#       type: 'text'
-#       query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#           - true:
-#             next_card: 'cr_setup_campaign_capping_since_last_visit_rule'
-#             button_location: 'right'
-#             button_text: 'Acknowledge'
-
-# 11
-# Get dataframe from setup_capping.sql
-# Rule: - If none of the campaign_capping_since_last_visit changed --> pass to next card
-#       - If some campaign_capping_since_last_visit changed --> Let the user Acknowledge that the campaign_capping_since_last_visit changed and that it might afftect performance. Then pass to next card.
-    # - id: 'cr_setup_campaign_capping_since_last_visit_rule'
-    #   title: 'Capping Parameters'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description:
-    #   action:
-    #     function: detectChangeInCount
-    #     additional_arguments: campaign_capping_since_last_visit
-    #     result:
-    #       true:
-    #           description: "It seems that someone changed the campaign capping since last visit on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-    #           next_card: "cr_setup_partner_capping_since_last_visit_rule"
-    #           button_location: "center"
-    #           button_text: "Acknowledge"
-    #       false:
-    #           next_card: "cr_setup_partner_capping_since_last_visit_rule"
-
-# # 12
-#     - id: 'cr_setup_campaign_capping_since_last_visit_text'
-#       title: 'Capping Parameters'
-#       type: 'text'
-#       query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the campaign capping since last visit on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#           - true:
-#               next_card: 'cr_setup_partner_capping_since_last_visit_rule'
-#               button_location: 'right'
-#               button_text: 'Acknowledge'
-
-# 13
-# Get dataframe from setup_capping.sql
-# Rule: - If none of the partner_capping_since_last_visit changed --> pass to next card
-#       - If some partner_capping_since_last_visit changed --> Let the user Acknowledge that the partner_capping_since_last_visit changed and that it might afftect performance. Then pass to next card.
-    # - id: 'cr_setup_partner_capping_since_last_visit_rule'
-    #   title: 'Capping Parameters'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description:
-    #   action:
-    #     function: detectChangeInCount
-    #     additional_arguments: partner_capping_since_last_visit
-    #     result:
-    #       true:
-    #           description: "It seems that someone changed the partner capping since last visit on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-    #           next_card: "cr_setup_campaign_lifetime_capping_rule"
-    #           button_location: "center"
-    #           button_text: "Acknowledge"
-    #       false:
-    #           next_card: "cr_setup_campaign_lifetime_capping_rule"
-
-# # 14
-#     - id: 'cr_setup_partner_capping_since_last_visit_text'
-#       title: 'Capping Parameters'
-#       type: text
-#       query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the daily capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#           - true:
-#               next_card: 'cr_setup_campaign_lifetime_capping_rule'
-#               button_location: 'right'
-#               button_text: 'Acknowledge'
-
-# 15
-# Get dataframe from setup_capping.sql
-# Rule: - If none of the campaign_lifetime_capping changed --> pass to next card
-#       - If some campaign_lifetime_capping changed --> Let the user Acknowledge that the campaign_lifetime_capping changed and that it might afftect performance. Then pass to next card.
-    # - id: 'cr_setup_campaign_lifetime_capping_rule'
-    #   title: 'Capping Parameters'
-    #   query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description:
-    #   action:
-    #     function: detectChangeInCount
-    #     additional_arguments: campaign_lifetime_capping
-    #     result:
-    #       true:
-    #           description: "It seems that someone changed the campaign lifetime capping on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
-    #           next_card: "cr_setup_segmentation_enabled_rule"
-    #           button_location: "center"
-    #           button_text: "Acknowledge"
-    #       false:
-    #           next_card: "cr_setup_segmentation_enabled_rule"
-
-# # 16
-#     - id: 'cr_setup_campaign_lifetime_capping_text'
-#       title: 'Capping Parameters'
-#       type: 'text'
-#       query_url: /api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-#       description: 'It seems that someone changed the campaign lifetime capping on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-#       results:
-#         - true:
-#             next_card: 'cr_setup_segmentation_enabled_rule'
-#             button_location: 'right'
-#             button_text: 'Acknowledge'
-
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
-
-# 17
 # Get dataframe from setup_is_segmentation_enabled.sql
 # Rule: - If max(is_segmentation_enabled) = 1
 #       - If  max(is_segmentation_enabled) = 0 --> Let the user Acknowledge that the segmentation was enabled and that it might afftect performance. Then pass to next card.
@@ -344,26 +144,14 @@ cards:
           value: 0 # check if the max value is equal to 0
         result:
           true:
-              description: "Segmentation can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              description: "Seems that segmentation is activated on this account. Let's check if changes in the segmentation have been made recently."
               next_card: 'cr_setup_segment_names_rule'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
           false:
               next_card: 'cr_setup_banners'
 
-# 18
-    # - id: 'cr_setup_segmentation_enabled_text'
-    #   title: 'Segmentation Parameters'
-    #   type: 'text'
-    #   query_url: setup_segmentation_is_enabled.sql
-    #   description: 'It seems that someone changed custom segmentation enablement on {campaign_name} the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-    #   results:
-    #       - true:
-    #           next_card: 'cr_setup_segment_names_rule'
-    #           button_location: 'right'
-    #           button_text: 'Acknowledge'
 
-# 19
 # Get dataframe from setup_segment_names.sql
 # Rule: - If count(disctinct segment_name) is stable day over day, pass to next card
 #       - If  count(disctinct segment_name) is not stable day over day --> Let the user Acknowledge that the the number of segments is fluctuating and that it might afftect performance. Then pass to next card.
@@ -381,28 +169,15 @@ cards:
               description: "It seems that someone added/deleted a segment: {values} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               next_card: 'cr_setup_banners'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
           false:
               next_card: 'cr_setup_banners'
 
-# 20
-    # - id: 'cr_setup_segment_names_text'
-    #   title: 'Segmentation Parameters'
-    #   type: 'text'
-    #   query_url: setup_segment_names.sql
-    #   description: 'It seems that someone added / deleted a segment: {segment_name} on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-    #   results:
-    #       - true:
-    #           next_card: 'cr_setup_banners'
-    #           button_location: 'right'
-    #           button_text: 'Acknowledge'
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
-
-# 21
 # Get dataframe from setup_banners.sql
 # Rule: - If count(distinct banner_name) is stable day over day --> Pass to next check
 #       - If  count(distinct banner_name) is not stable day over day --> Let the user Acknowledge that the banners that were enabled / disabled and that it might affect performance. Then pass to next card.
@@ -422,34 +197,88 @@ cards:
                 function: graphData
                 additional_arguments: # the first argument (the data from the query) will automatically be used
                     columnToGraph: "banner_count" # the column to graph
-                    yAxisFormat: "number" # how to format the y-axis
-                    graphType: "line" # graph type
+                    yAxisFormat: "number" # how to format the y-axis (percent, currency, number, decimal etc.)
+                    graphType: "line" # graph type (line or bar)
                     isDatetime: false # dates only not datetimes
-              next_card: 'cr_setup_feed_import_rule'
+                    graphAsIndex: false # Indexed graph (day1 =100)
+              next_card: 'cr_setup_feed_quality_graph'
               button_location: 'center'
-              button_text: 'Acknowledge'
+              button_text: "OK, Keep investigating"
           false:
+              next_card: 'cr_setup_feed_quality_graph'
+
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from setup_feed_QS.sql
+# Rule: - If change of QS day over day is less than 25% -> Pass to next card
+#       - If change of QS day over day is less than 25% -> Let the user Acknowledge that the last feed import was more than 10 days ago and it might afftect performance. Then pass to next card.
+# - id: 'cr_setup_feed_quality_rule'
+#       title: 'Feed Check'
+#       query_url: /api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
+#       description:
+#       action:
+#         ask_user: false
+#         function: isPercentChangeStable
+#         additional_arguments:
+#           column: feed_quality # Column name for the check
+#           threshold: 0.25 # threshold (make this 0 to test)
+#         result:
+#           true:
+#               description: "It seems that there have been a significant change in your feed quality score. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+#               follow_up:
+#                 function: graphData
+#                 additional_arguments:
+#                       columnToGraph: feed_quality # the column to graph
+#                       yAxisFormat: percent # how to format the y-axis (percent, currency, number, decimal etc.)
+#                       graphType: line # graph type (line or bar)
+#                       isDatetime: false # dates only not datetimes
+#                       graphAsIndex: false # Indexed graph (day1 =100)
+#               next_card: 'cr_feed_quality_text'
+#               button_location: center
+#               button_text: "OK, Keep investigating"
+#           false:
+#               next_card: 'cr_perf_deduplication_ratio_rule'
+
+# Display FeedQuality per day
+    - id: 'cr_setup_feed_quality_graph'
+      title: 'Feed Check'
+      query_url: /api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
+      description: 'Has the feed quality changed recently?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+              columnToGraph: feed_quality # the column to graph
+              yAxisFormat: percent # how to format the y-axis (percent, currency, number, decimal etc.)
+              graphType: line # graph type (line or bar)
+              isDatetime: false # dates only not datetimes
+              graphAsIndex: false # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'cr_feed_quality_text'
+              button_location: right
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_deduplication_ratio_rule'
+              button_location: left
+              button_text: No
+
+# Text output if feed quality changes
+    - id: 'cr_feed_quality_text'
+      title: 'Feed Check'
+      query_url:
+      description: 'It seems that there have been a significant change in your feed quality score. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+      action:
+        ask_user: true
+        result:
+          true:
               next_card: 'cr_setup_feed_import_rule'
+              button_location: center
+              button_text: "Keep investigating"
 
-# 22
-# Display number of banners live per day
-    # - id: 'cr_setup_banners_text'
-    #   title: 'Number of banners live'
-    #   type: 'graph'
-    #   query_url: /api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
-    #   description: 'It looks that someone (dis)activated some banner formats on the list:{day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-    #   results:
-    #       - true:
-    #           next_card: 'cr_setup_feed_import_rule'
-    #           button_location: 'right'
-    #           button_text: 'Acknowledge'
-
-################################################################################################################################################################################
-################################################################################################################################################################################
-################################################################################################################################################################################
-
-
-# 23
 # Get dataframe from setup_feed_QS.sql
 # Rule: - If max(FeedImport) >= current_date - 10. Pass to next card
 #       - If  max(FeedImport) < current_date - 10 --> Let the user Acknowledge that the last feed import was more than 10 days ago and it might afftect performance. Then pass to next card.
@@ -466,54 +295,19 @@ cards:
           true:
               next_card: 'cr_perf_deduplication_ratio_rule'
           false:
-              next_card: 'cr_setup_feed_quality_graph'
-
-# 24
-# Display FeedQuality per day
-    - id: 'cr_setup_feed_quality_graph'
-      title: 'Feed Check'
-      query_url: /api/v1/query/sherlock/setup/quality_score?client_id={client_id}&start_date={start_date}&end_date={end_date}
-      description: 'Has the feed quality changed recently?'
-      action:
-        ask_user: true
-        function: graphData
-        additional_arguments:
-          columnToGraph: feed_quality
-          yAxisFormat: percent
-          graphType: line # graph type
-          isDatetime: false # dates only not datetimes
-        result:
-          true:
-              next_card: 'cr_feed_quality_text'
-              button_location: right
-              button_text: Yes
-          false:
-              next_card: 'cr_perf_deduplication_ratio_rule'
-              button_location: left
-              button_text: No
-
-# # 25
-    - id: 'cr_feed_quality_text'
-      title: 'Feed Check'
-      query_url:
-      description: 'Feed quality can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
-      action:
-        ask_user: true
-        result:
-          true:
+              description: "It also seems that your last feed import is more than 10 days ago. Your feed might be the issue here. Please discuss it with your TAM, AX to revert, or let your client know about this."
               next_card: 'cr_perf_deduplication_ratio_rule'
               button_location: center
-              button_text: Acknowledge
-
+              button_text: "OK, Keep investigating"
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
-# 26
 # Get dataframe from perf_dedup.sql
-# Rule: - If dedup_ratio varies by less than 30% day over day everyday --> pass to next card
-#       - If  dedup_ratio varies by more than 30% day over day at least one day --> Let the user Acknowledge that the dedup ratio is volatile and that it might afftect performance. Then pass to next card.
+# Rule:
+# - If dedup_ratio varies by less than 30% day over day everyday --> pass to next card
+# - If  dedup_ratio varies by more than 30% day over day at least one day --> Let the user Acknowledge that the dedup ratio is volatile and that it might afftect performance. Then pass to next card.
     - id: 'cr_perf_deduplication_ratio_rule'
       title: 'Attribution Model'
       query_url: /api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
@@ -523,14 +317,13 @@ cards:
         function: isPercentChangeStable
         additional_arguments:
           column: dedup_ratio # Column name for the check
-          threshold: 0.30 # threshold (make this 0 to test)
+          threshold: 0.25 # threshold (make this 0 to test)
         result:
           true:
               next_card: 'cr_perf_website_sales_share_graph'
           false:
               next_card: 'cr_perf_deduplication_ratio_graph'
 
-# 27
 # Display deduplication ratio per day
     - id: 'cr_perf_deduplication_ratio_graph'
       title: 'Attribution Model'
@@ -540,10 +333,11 @@ cards:
         ask_user: true
         function: graphData
         additional_arguments:
-          columnToGraph: dedup_ratio
-          yAxisFormat: percent
-          graphType: line # graph type
+          columnToGraph: dedup_ratio # the column to graph
+          yAxisFormat: percent # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: line # graph type (line or bar)
           isDatetime: false # dates only not datetimes
+          graphAsIndex: false # Indexed graph (day1 =100)
         result:
           true:
               next_card: 'cr_perf_deduplication_ratio_text'
@@ -554,66 +348,378 @@ cards:
               button_location: left
               button_text: No
 
-# 28
+# Text output if deduplication ratio changes
     - id: 'cr_perf_deduplication_ratio_text'
       title: 'Attribution Model'
       query_url:
-      description: 'A consistent change of the dedup ratio can impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.'
+      description: 'An unstable Dedup Ratio can alter the prediction engine. Please review this issue with your TAM, AX to revert, or let your client know about this.'
       action:
         ask_user: true
         result:
           true:
               next_card: 'cr_perf_website_sales_share_graph'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating"
 
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
-# 29
 # Get dataframe from performance_share_of_website.sql
-# No Rule
-# If share of total sales constant --> No issue, it is a seasonality issue
-# If share of total website sales decreases / Increase --> Keep investigating
+# Rule :
+# - If share of total sales constant --> No issue, it is a seasonality issue
+# - If share of total website sales decreases / Increase --> Keep investigating
     - id: 'cr_perf_website_sales_share_graph'
       title: 'Share of Total Website Sales'
       query_url: /api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
       description: 'Is the share of sales coming from this campaign stable on the client side?'
       action:
         ask_user: false
-        function: detectChangeInValue
+        function: isPercentChangeStable
         additional_arguments:
-          columns: percentage_of_website
+          column: percentage_of_website # Column name for the check
+          threshold: 0.25 # threshold (make this 0 to test)
         result:
           true:
-              description: "If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client."
-              next_card: 'end'
+              description: "If the share of sales coming from this campaign over your total website sales is stable, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client."
+              next_card: 'cr_perf_landing_rate_graph'
               button_location: center
-              button_text: Acknowledge
+              button_text: "OK, Keep investigating (there might be no other issue)."
           false:
+              next_card: 'cr_perf_landing_rate_graph'
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from perf_landing_rate_check.sql
+# Display landing rate per day
+# Rule:
+# - If landing rate constant --> Keep investigating
+# - If landing rate decreases / Increase --> Escalate to understand why the landing rate is not constant
+    - id: 'cr_perf_landing_rate_graph'
+      title: 'Landing rate evolution'
+      query_url: /api/v1/query/sherlock/performance/landing_rate?partner_id={partner_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Is the landing rate stable on this campaign?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: CPC # the column to graph
+          yAxisFormat: decimal # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: line # graph type (line or bar)
+          isDatetime: false # dates only not datetimes
+          graphAsIndex: false # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'cr_perf_device_graph'
+              button_location: right
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_landing_rate_text'
+              button_location: left
+              button_text: No
+
+# Text output if landing rate changes
+    - id: 'cr_perf_landing_rate_text'
+      title: 'Landing rate evolution'
+      query_url:
+      description: 'A volatile Landing Rate often impacts campaign performance. It is generally linked to an issue with In App or Cross device. Please investigate further on this link: https://tableau.yourcompany.com/#/<report> and confirm the issue with your TAM or AX.'
+      results:
+          - true:
+            - next_card: 'cr_perf_device_graph'
+            - button_location: 'right'
+            - button_text: "OK, Keep investigating (click here after opening the link above)"
+
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from CR_per_device.sql
+# Display CR evolution per day per device
+# No Rule
+    - id: 'cr_perf_device_graph'
+      title: 'CR evolution per device'
+      query_url: /api/v1/query/sherlock/performance/CR_per_device?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Is the CR evolution similar accross devices?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: # the column to graph
+            - "Desktop"
+            - "Mobile"
+            - "Unknown"
+          yAxisFormat: percent # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: line # graph type (line or bar)
+          isDatetime: false # dates only not datetimes
+          graphAsIndex: true # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'cr_perf_CPC_evolution_graph'
+              button_location: right
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_device_text'
+              button_location: left
+              button_text: No
+
+# If CR change located on one single device
+    - id: 'cr_perf_device_text'
+      title: 'CR evolution per device'
+      query_url:
+      description: 'A dip in performance on a single device narrows down the issue. Please keep investigating but let you TAM / AX know about this when you escalate the issue.'
+      results:
+          - true:
+            - next_card: 'cr_perf_CPC_evolution_graph'
+            - button_location: 'right'
+            - button_text: "OK, Keep investigating"
+
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from CPC_evolution.sql
+# Rule:
+# - If CPC stable --> Keep investigating
+# - If CPC decreases / Increase --> Escalate to understand why the landing rate is not constant
+    - id: 'cr_perf_CPC_evolution_graph'
+      title: 'CPC evolution'
+      query_url: /api/v1/query/sherlock/performance/CPC_evolution?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Are CPCs stable over time on this campaign?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: 'CPC' # the column to graph
+          yAxisFormat: decimal # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: 'line' # graph type (line or bar)
+          isDatetime: false # dates only not datetimes
+          graphAsIndex: true # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'cr_perf_bid_evolution_graph'
+              button_location: 'right'
+              button_text: 'Yes'
+          false:
+              next_card: 'cr_perf_CPC_evolution_text'
+              button_location: 'left'
+              button_text: 'No'
+
+# Text output if CPC change
+    - id: 'cr_perf_CPC_evolution_text'
+      title: 'CPC evolution'
+      query_url:
+      description: "Seems that your CPC are volatile. Let's check your smoothing settings. You can also discuss it with your TAM or AX as changing your CPC too often can significantly affect your campaign performances."
+      results:
+          - true:
+            - next_card: 'cr_setup_smoothing_rule'
+            - button_location: 'center'
+            - button_text: 'OK'
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from smoothing.sql
+# Rule:
+# If smoothing_ratio changes by less than 10% --> Keep investigating
+# If smoothing decreases / Increase --> Escalate to understand why the landing rate is not constant
+    - id: 'cr_setup_smoothing_rule'
+      title: 'Smoothing evolution'
+      query_url: /api/v1/query/sherlock/setup/smoothing?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description:
+      action:
+        ask_user: false
+        function: isPercentChangeStable
+        additional_arguments:
+          column: 'smoothing_ratio' # Column name for the check
+          threshold: 0.25 # threshold (make this 0 to test)
+        result:
+          true:
+              next_card: 'cr_perf_bid_evolution_graph'
+          false:
+              description: "It looks that smoothing is active on this campaign. This can significantly impact your campaign performance. Please discuss this with your TAM or AX to update your budget or change your settings."
+              follow_up:
+                function: graphData
+                additional_arguments: # the first argument (the data from the query) will automatically be used
+                    columnToGraph: 'smoothing_ratio' # the column to graph
+                    yAxisFormat: 'percent' # how to format the y-axis (percent, currency, number, decimal etc.)
+                    graphType: 'line' # graph type (line or bar)
+                    isDatetime: false # dates only not datetimes
+                    graphAsIndex: false # Indexed graph (day1 =100)
+              next_card: 'cr_perf_bid_evolution_graph'
+              button_location: 'center'
+              button_text: "OK, Keep investigating (there might be no other issue)"
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from bid_evolution.sql
+# Display bids per daytime
+# No Rule
+    - id: 'cr_perf_bid_evolution_graph'
+      title: 'Bid evolution'
+      query_url: /api/v1/query/sherlock/performance/bid_evolution?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Are bids stable over time on this campaign?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: 'computed_bid' # the column to graph
+          yAxisFormat: decimal # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: 'line' # graph type (line or bar)
+          isDatetime: true # datetimes only (no date)
+          graphAsIndex: false # Indexed graph (day1 =100)
+        result:
+          true:
               next_card: 'end'
-              button_location: center
-              button_text: Finish
-# 30
-    # - id: 'cr_perf_Website_sales_share_text_true'
-    #   title: 'Share of total Website sales'
-    #   type: 'Text'
-    #   query_url:
-    #   description: 'If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.'
-    #   results:
-    #     - true:
-    #         next_card: end
-    #         button_location: right
-    #         button_text: Acknowledge
+              button_location: 'right'
+              button_text: 'Yes, finish investigation'
+          false:
+              next_card: 'cr_perf_bid_evolution_text'
+              button_location: 'left'
+              button_text: No
+
+# Text output if bids change
+    - id: 'cr_perf_bid_evolution_text'
+      title: 'Bid evolution'
+      query_url:
+      description: "Seems that your bids are very volatile. Let's investigate further if this is due to vCPC, the feedbackloop factor or a prediction issue."
+      results:
+          - true:
+            - next_card: 'cr_setup_VCPC_rule'
+            - button_location: 'center'
+            - button_text: 'OK'
+
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from VCPC.sql
+# Rule:
+# If vCPC changed by more than 10% day over day -> Display the vCPC evolution
+# If vCPC changed by more than 10% day over day -> Keep investigating (fbl_evolution)
+    - id: 'cr_setup_VCPC_rule'
+      title: 'vCPC evolution'
+      query_url: /api/v1/query/sherlock/setup/VCPC?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description:
+      action:
+        ask_user: false
+        function: isPercentChangeStable
+        additional_arguments:
+          column: 'vCPC' # Column name for the check
+          threshold: 0.10 # threshold (make this 0 to test)
+        result:
+          true:
+              next_card: 'cr_perf_fbl_factor_graph'
+          false:
+              description: "It looks that someone changed {changes}. This can significantly impact campaign performance as it alters your bids. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              follow_up:
+                function: graphData
+                additional_arguments: # the first argument (the data from the query) will automatically be used
+                    columnToGraph: 'vCPC' # the column to graph
+                    yAxisFormat: 'percent' # how to format the y-axis (percent, currency, number, decimal etc.)
+                    graphType: 'line' # graph type (line or bar)
+                    isDatetime: true # datetimes only (no date)
+                    graphAsIndex: false # Indexed graph (day1 =100)
+              next_card: 'cr_perf_fbl_factor_graph'
+              button_location: 'center'
+              button_text: "OK, Keep investigating (there might be no other issue)"
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from fbl_evolution.sql
+# Display feedbackloop factor per day
+# No Rule
+    - id: 'cr_perf_fbl_factor_graph'
+      title: 'Feedbackloop Evolution'
+      query_url: /api/v1/query/sherlock/performance/feedbackloop_factor?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Is the Feedbackloop Factor stable on this campaign?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: 'fbl_factor' # the column to graph
+          yAxisFormat: decimal # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: 'line' # graph type (line or bar)
+          isDatetime: true # datetimes only (no date)
+          graphAsIndex: false # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'cr_perf_prediction_factor_graph'
+              button_location: 'right'
+              button_text: Yes
+          false:
+              next_card: 'cr_perf_fbl_factor_text'
+              button_location: 'left'
+              button_text: No
+
+# Text output if fbl factor changes
+    - id: 'cr_perf_fbl_factor_text'
+      title: 'Feedbackloop Evolution'
+      query_url:
+      description: "Seems that your feedbackloop is going wild. Let's check how prediction has been evolving too before escalating"
+      results:
+          - true:
+            - next_card: 'cr_perf_prediction_factor_graph'
+            - button_location: 'center'
+            - button_text: 'OK'
+
+################################################################################################################################################################################
+################################################################################################################################################################################
+################################################################################################################################################################################
+
+# Get dataframe from prediction_factor.sql
+# Display landing rate per day
+# No Rule
+    - id: 'cr_perf_prediction_factor_graph'
+      title: 'Prediction factor evolution'
+      query_url: /api/v1/query/sherlock/performance/prediction_factor?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description: 'Is the prediction factor stable on this campaign?'
+      action:
+        ask_user: true
+        function: graphData
+        additional_arguments:
+          columnToGraph: 'prediction_factor' # the column to graph
+          yAxisFormat: decimal # how to format the y-axis (percent, currency, number, decimal etc.)
+          graphType: 'line' # graph type (line or bar)
+          isDatetime: true # datetimes only (no date)
+          graphAsIndex: false # Indexed graph (day1 =100)
+        result:
+          true:
+              next_card: 'end'
+              button_location: 'right'
+              button_text: 'Yes, finish investigation'
+          false:
+              next_card: 'cr_perf_prediction_factor_text'
+              button_location: 'left'
+              button_text: No
+
+# Text output if prediction factor changes
+    - id: 'cr_perf_prediction_factor_text'
+      title: 'Prediction factor evolution'
+      query_url:
+      description: "Seems that your prediction factor is going wild. Please, check with your AX to understand what might have caused this and resolve the issue."
+      results:
+          - true:
+            - next_card: 'end'
+            - button_location: 'right'
+            - button_text: 'Ok, finish investigation'
 
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 ################################################################################################################################################################################
 
 
-# 17
+# Last card (always)
     - id: 'end'
       title: 'Finished!'
       description: "We hope you enjoyed using Sherlock for the investigation; feel free to discuss it with your TAM or AX if needed."

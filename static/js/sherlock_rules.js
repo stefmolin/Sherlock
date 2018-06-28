@@ -60,7 +60,7 @@ Parameters: json = the query result from the API where each row of the result is
                    {col_name : value}
             options = dictionary with key "columns" containing the col_name's to be checked
 
-Returns:   The day and values on the first day that is different or false for no change
+Returns:   Dictionary with keys 'changes' which is a String version of the columns changed to what value and on what day; and 'change_list' which can be used for debugging
 
 Note that this is relying on the data being sorted by day already.
 */

@@ -1,0 +1,720 @@
+// Don't remove this first line (paste JSON below)
+const decision_tree = JSON.parse(`
+{
+
+	"cards": [
+		{
+			"id": "start",
+			"title": "Checking Number of Campaigns...",
+			"query_url": "/api/v1/query/sherlock/setup/new_campaign?client_id={client_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "detectChangeInCount",
+				"additional_arguments": {
+					"columnToCount": "campaign_name"
+				},
+				"result": {
+					"true": {
+						"description": "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR.",
+						"next_card": "cr_setup_sampling_ratio_rule",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_sampling_ratio_rule"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_sampling_ratio_rule",
+			"title": "Sampling Ratio",
+			"query_url": "/api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "detectChangeInValue",
+				"additional_arguments": {
+					"columns": "campaign_sampling_ratio"
+				},
+				"result": {
+					"true": {
+						"description": "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"follow_up": {
+							"function": "graphData",
+							"additional_arguments": {
+								"columnToGraph": "campaign_sampling_ratio",
+								"yAxisFormat": "percent",
+								"graphType": "line",
+								"isDatetime": false,
+								"graphAsIndex": false
+							}
+						},
+						"next_card": "cr_setup_capping_rule",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_capping_rule"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_capping_rule",
+			"title": "Capping Parameters",
+			"query_url": "/api/v1/query/sherlock/setup/capping?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "detectChangeInValue",
+				"additional_arguments": {
+					"columns": [
+						"campaign_capping_starting_day",
+						"campaign_capping_ending_day",
+						"daily_capping",
+						"campaign_capping_since_last_visit",
+						"partner_capping_since_last_visit",
+						"campaign_lifetime_capping"
+					]
+				},
+				"result": {
+					"true": {
+						"description": "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"next_card": "cr_setup_segmentation_enabled_rule",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_segmentation_enabled_rule"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_segmentation_enabled_rule",
+			"title": "Segmentation Parameters",
+			"query_url": "/api/v1/query/sherlock/setup/segmentation_is_enabled?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "checkMaxValue",
+				"additional_arguments": {
+					"column": "is_segmentation_enabled",
+					"value": 0
+				},
+				"result": {
+					"true": {
+						"description": "Seems that segmentation is activated on this account. Let's check if changes in the segmentation have been made recently.",
+						"next_card": "cr_setup_segment_names_rule",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_banners"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_segment_names_rule",
+			"title": "Segmentation Parameters",
+			"query_url": "/api/v1/query/sherlock/setup/segment_names?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "detectChangeInCount",
+				"additional_arguments": {
+					"columnToCount": "segment_name"
+				},
+				"result": {
+					"true": {
+						"description": "It seems that someone added/deleted a segment: {values} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"next_card": "cr_setup_banners",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_banners"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_banners",
+			"title": "Number of Banners Live",
+			"query_url": "/api/v1/query/sherlock/setup/banners?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "detectChangeInValue",
+				"additional_arguments": {
+					"columns": "banner_count"
+				},
+				"result": {
+					"true": {
+						"description": "It looks that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"follow_up": {
+							"function": "graphData",
+							"additional_arguments": {
+								"columnToGraph": "banner_count",
+								"yAxisFormat": "number",
+								"graphType": "line",
+								"isDatetime": false,
+								"graphAsIndex": false
+							}
+						},
+						"next_card": "cr_setup_feed_quality_graph",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					},
+					"false": {
+						"next_card": "cr_setup_feed_quality_graph"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_feed_quality_graph",
+			"title": "Feed Check",
+			"query_url": "/api/v1/query/sherlock/setup/quality_score?partner_id={partner_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Has the feed quality changed recently?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "feed_quality",
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_feed_quality_text",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_deduplication_ratio_rule",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_feed_quality_text",
+			"title": "Feed Check",
+			"query_url": null,
+			"description": "It seems that there have been a significant change in your feed quality score. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_setup_feed_import_rule",
+						"button_location": "center",
+						"button_text": "Keep investigating"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_setup_feed_import_rule",
+			"title": "Feed Check",
+			"query_url": "/api/v1/query/sherlock/setup/feed_import?partner_id={partner_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "isRecent",
+				"additional_arguments": {
+					"threshold": 10
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_deduplication_ratio_rule"
+					},
+					"false": {
+						"description": "It also seems that your last feed import is more than 10 days ago. Your feed might be the issue here. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"next_card": "cr_perf_deduplication_ratio_rule",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_rule",
+			"title": "Attribution Model",
+			"query_url": "/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "isPercentChangeStable",
+				"additional_arguments": {
+					"column": "dedup_ratio",
+					"threshold": 0.25
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_website_sales_share_graph"
+					},
+					"false": {
+						"next_card": "cr_perf_deduplication_ratio_graph"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_graph",
+			"title": "Attribution Model",
+			"query_url": "/api/v1/query/sherlock/performance/dedup?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Seems that the dedup ratio is volatile. Do you notice any unusual variation looking at recent data?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "dedup_ratio",
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_deduplication_ratio_text",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_website_sales_share_graph",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_deduplication_ratio_text",
+			"title": "Attribution Model",
+			"query_url": null,
+			"description": "An unstable Dedup Ratio can alter the prediction engine. Please review this issue with your TAM, AX to revert, or let your client know about this.",
+			"action": {
+				"ask_user": true,
+				"result": {
+					"true": {
+						"next_card": "cr_perf_website_sales_share_graph",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_website_sales_share_graph",
+			"title": "Share of Total Website Sales",
+			"query_url": "/api/v1/query/sherlock/performance/share_of_website?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the share of sales coming from this campaign stable on the client side?",
+			"action": {
+				"ask_user": false,
+				"function": "isPercentChangeStable",
+				"additional_arguments": {
+					"column": "percentage_of_website",
+					"threshold": 0.25
+				},
+				"result": {
+					"true": {
+						"description": "If the share of sales coming from this campaign over your total website sales is stable, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.",
+						"next_card": "cr_perf_landing_rate_graph",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating (there might be no other issue)."
+					},
+					"false": {
+						"next_card": "cr_perf_landing_rate_graph"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_landing_rate_graph",
+			"title": "Landing rate evolution",
+			"query_url": "/api/v1/query/sherlock/performance/landing_rate?partner_id={partner_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the landing rate stable on this campaign?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "landing_rate",
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_device_graph",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_landing_rate_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_landing_rate_text",
+			"title": "Landing rate evolution",
+			"query_url": null,
+			"description": "A volatile Landing Rate often impacts campaign performance. It is generally linked to an issue with In App or Cross device. Please investigate further on this link: https://tableau.yourcompany.com/#/<report> and confirm the issue with your TAM or AX.",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "cr_perf_device_graph"
+						},
+						{
+							"button_location": "right"
+						},
+						{
+							"button_text": "OK, Keep investigating (click here after opening the link above)"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cr_perf_device_graph",
+			"title": "CR evolution per device",
+			"query_url": "/api/v1/query/sherlock/performance/CR_per_device?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the CR evolution similar accross devices?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": [
+						"Desktop",
+						"Mobile",
+						"Unknown"
+					],
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_CPC_evolution_graph",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_device_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_device_text",
+			"title": "CR evolution per device",
+			"query_url": null,
+			"description": "A dip in performance on a single device narrows down the issue. Please keep investigating but let you TAM / AX know about this when you escalate the issue.",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "cr_perf_CPC_evolution_graph"
+						},
+						{
+							"button_location": "right"
+						},
+						{
+							"button_text": "OK, Keep investigating"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cr_perf_CPC_evolution_graph",
+			"title": "CPC evolution",
+			"query_url": "/api/v1/query/sherlock/performance/CPC_evolution?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Are CPCs stable over time on this campaign?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "CPC",
+					"yAxisFormat": "decimal",
+					"graphType": "line",
+					"isDatetime": false,
+					"graphAsIndex": true
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_bid_evolution_graph",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_CPC_evolution_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_CPC_evolution_text",
+			"title": "CPC evolution",
+			"query_url": null,
+			"description": "Seems that your CPC are volatile. Let's check your smoothing settings. You can also discuss it with your TAM or AX as changing your CPC too often can significantly affect your campaign performances.",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "cr_setup_smoothing_rule"
+						},
+						{
+							"button_location": "center"
+						},
+						{
+							"button_text": "OK"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cr_setup_smoothing_rule",
+			"title": "Smoothing evolution",
+			"query_url": "/api/v1/query/sherlock/setup/smoothing?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "isPercentChangeStable",
+				"additional_arguments": {
+					"column": "smoothing_ratio",
+					"threshold": 0.25
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_bid_evolution_graph"
+					},
+					"false": {
+						"description": "It looks that smoothing is active on this campaign. This can significantly impact your campaign performance. Please discuss this with your TAM or AX to update your budget or change your settings.",
+						"follow_up": {
+							"function": "graphData",
+							"additional_arguments": {
+								"columnToGraph": "smoothing_ratio",
+								"yAxisFormat": "percent",
+								"graphType": "line",
+								"isDatetime": false,
+								"graphAsIndex": false
+							}
+						},
+						"next_card": "cr_perf_bid_evolution_graph",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating (there might be no other issue)"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_bid_evolution_graph",
+			"title": "Bid evolution",
+			"query_url": "/api/v1/query/sherlock/performance/bid_evolution?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Are bids stable over time on this campaign?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "computed_bid",
+					"yAxisFormat": "decimal",
+					"graphType": "line",
+					"isDatetime": true,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "end",
+						"button_location": "right",
+						"button_text": "Yes, finish investigation"
+					},
+					"false": {
+						"next_card": "cr_perf_bid_evolution_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_bid_evolution_text",
+			"title": "Bid evolution",
+			"query_url": null,
+			"description": "Seems that your bids are very volatile. Let's investigate further if this is due to vCPC, the feedbackloop factor or a prediction issue.",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "cr_setup_VCPC_rule"
+						},
+						{
+							"button_location": "center"
+						},
+						{
+							"button_text": "OK"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cr_setup_VCPC_rule",
+			"title": "vCPC evolution",
+			"query_url": "/api/v1/query/sherlock/setup/VCPC?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": null,
+			"action": {
+				"ask_user": false,
+				"function": "isPercentChangeStable",
+				"additional_arguments": {
+					"column": "vCPC",
+					"threshold": 0.1
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_fbl_factor_graph"
+					},
+					"false": {
+						"description": "It looks that someone changed {changes}. This can significantly impact campaign performance as it alters your bids. Please discuss it with your TAM, AX to revert, or let your client know about this.",
+						"follow_up": {
+							"function": "graphData",
+							"additional_arguments": {
+								"columnToGraph": "vCPC",
+								"yAxisFormat": "percent",
+								"graphType": "line",
+								"isDatetime": true,
+								"graphAsIndex": false
+							}
+						},
+						"next_card": "cr_perf_fbl_factor_graph",
+						"button_location": "center",
+						"button_text": "OK, Keep investigating (there might be no other issue)"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_fbl_factor_graph",
+			"title": "Feedbackloop Evolution",
+			"query_url": "/api/v1/query/sherlock/performance/feedbackloop_factor?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the Feedbackloop Factor stable on this campaign?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "fbl_factor",
+					"yAxisFormat": "decimal",
+					"graphType": "line",
+					"isDatetime": true,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "cr_perf_prediction_factor_graph",
+						"button_location": "right",
+						"button_text": "Yes"
+					},
+					"false": {
+						"next_card": "cr_perf_fbl_factor_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_fbl_factor_text",
+			"title": "Feedbackloop Evolution",
+			"query_url": null,
+			"description": "Seems that your feedbackloop is going wild. Let's check how prediction has been evolving too before escalating",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "cr_perf_prediction_factor_graph"
+						},
+						{
+							"button_location": "center"
+						},
+						{
+							"button_text": "OK"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "cr_perf_prediction_factor_graph",
+			"title": "Prediction factor evolution",
+			"query_url": "/api/v1/query/sherlock/performance/prediction_factor?campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}",
+			"description": "Is the prediction factor stable on this campaign?",
+			"action": {
+				"ask_user": true,
+				"function": "graphData",
+				"additional_arguments": {
+					"columnToGraph": "prediction_factor",
+					"yAxisFormat": "decimal",
+					"graphType": "line",
+					"isDatetime": true,
+					"graphAsIndex": false
+				},
+				"result": {
+					"true": {
+						"next_card": "end",
+						"button_location": "right",
+						"button_text": "Yes, finish investigation"
+					},
+					"false": {
+						"next_card": "cr_perf_prediction_factor_text",
+						"button_location": "left",
+						"button_text": "No"
+					}
+				}
+			}
+		},
+		{
+			"id": "cr_perf_prediction_factor_text",
+			"title": "Prediction factor evolution",
+			"query_url": null,
+			"description": "Seems that your prediction factor is going wild. Please, check with your AX to understand what might have caused this and resolve the issue.",
+			"result": [
+				{
+					"true": [
+						{
+							"next_card": "end"
+						},
+						{
+							"button_location": "right"
+						},
+						{
+							"button_text": "Ok, finish investigation"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "end",
+			"title": "Finished!",
+			"description": "We hope you enjoyed using Sherlock for the investigation; feel free to discuss it with your TAM or AX if needed."
+		}
+	]
+}
+`); // Don't remove this

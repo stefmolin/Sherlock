@@ -87,7 +87,10 @@ function populateCard(data, card, json, partner_id, client_id, campaign_id, star
   if (card.action.function !== 'undefined' && card.action.function !== null) {
     resultOfCheck = window[card.action.function](data, card.action.additional_arguments);
   }
-  toggleElement("loading_indicator");
+  turnOff(["loading_indicator"]);
+  if (resultOfCheck == 'error') {
+    return;
+  }
   if (card.action.ask_user == true) {
     // populate the buttons bc user needs to move the process forward
     var buttonPaths = [true, false];
@@ -273,6 +276,16 @@ class TimeoutError extends Error {
   }
 }
 
+// For formatting the request URLs with the proper parameters
+String.prototype.format = function() {
+   var content = this;
+   for (var key in arguments[0]) { // replace arguments using a dictionary provided as the first argument
+      var replacement = '{' + key + '}';
+      content = content.replace(replacement, arguments[0][key]);
+   }
+   return content;
+};
+
 /**************************************************
 ********     CARD-SPECIFIC FUNCTIONS    ***********
 ****  Response processing and error handling   ****
@@ -320,6 +333,19 @@ function conditionalButtons(button, field, current_button, current_field) {
 function performLookup(id, selector, type) {
   const fieldValue = document.getElementById(id).value;
   if (/\d+/.test(fieldValue) && fieldValue > 0){
+    const startDate = document.getElementById("start_date").value;
+    const endDate = document.getElementById("end_date").value;
+    if (type == "campaign") {
+      // need to check if start_date and end_date are filled in otherwise don't allow the lookup
+      if (startDate == "" || startDate == undefined) {
+        focusOnMissingField("start_date");
+        return;
+      }
+      if (endDate == "" || endDate == undefined) {
+        focusOnMissingField("end_date");
+        return;
+      }
+    }
     console.log('field is valid, looking up IDs...');
     toggleElement("loading_indicator"); // show loading indicator
     if (document.getElementById(selector).style.display !== "none") {
@@ -333,14 +359,19 @@ function performLookup(id, selector, type) {
       makeRequest(url, "POST", fillInClientOptions, clientsUnavailable);
     } else {
       // type == "campaign"
-      const url = "/api/v1/query/sherlock/campaign_lookup?client_id=" + fieldValue;
+      const url = "/api/v1/query/sherlock/campaign_lookup?client_id={client_id}&start_date={start_date}&end_date={end_date}"
+                  .format({client_id : fieldValue, start_date : startDate, end_date : endDate});
       makeRequest(url, "POST", fillInCampaignOptions, campaignsUnavailable);
     }
   } else {
     console.log(fieldValue);
-    document.getElementById(id).focus();
-    document.getElementById(id).reportValidity();
+    focusOnMissingField(id);
   }
+}
+
+function focusOnMissingField(id) {
+  document.getElementById(id).focus();
+  document.getElementById(id).reportValidity();
 }
 
 function partnersUnavailable() {
@@ -497,4 +528,27 @@ function setValue(id, selector) {
   item.value = selected;
   // hide selector
   item_selector.style.display = "none";
+  let partner_id = document.getElementById("partner_id").value;
+  let client_id = document.getElementById("client_id").value;
+  initializeButtons({partnerID : partner_id, clientID : client_id});
+}
+
+
+// show proper buttons based on initial input
+function initializeButtons(values) {
+  let partner_id = values.partnerID;
+  let client_id = values.clientID;
+  if (partner_id && client_id) {
+    turnOff(['partner_lookup_button', 'client_lookup_button']);
+    turnOn(['campaign_lookup_button']);
+  } else if (!partner_id && client_id) {
+    turnOff(['client_lookup_button', 'campaign_lookup_button']);
+    turnOn(['partner_lookup_button']);
+  } else if (partner_id && !client_id) {
+    turnOff(['partner_lookup_button', 'campaign_lookup_button']);
+    turnOn(['client_lookup_button']);
+  } else {
+    turnOff(['campaign_lookup_button']);
+    turnOn(['partner_lookup_button']);
+  }
 }
