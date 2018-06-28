@@ -60,7 +60,7 @@ def parameter_entry():
                                 client_id=request.args.get('client_id') or 'undefined',
                                 start_date=start_date,
                                 end_date=end_date,
-                                metric=request.args.get('kpi'))
+                                metric=request.args.get('kpi') or 'undefined')
     else:
         return redirect(url_for('login'))
 

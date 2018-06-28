@@ -28,16 +28,12 @@ Parameter Entry
             <div class="row">
               <div class="col s2 offset-s5">
                 <select id="metric_selector" class="metric" name="metric" required="">
-                  {% if metric %}
-                    <option value="{{ metric }}" selected>{{ metric.upper() }}</option>
-                  {% else %}
-                    <option value="" disabled selected>Metric</option>
-                    <option value="cos">COS</option>
-                    <option value="cr">CR</option>
-                    <option value="ctr">CTR</option>
-                    <option value="rext">RexT</option>
-                    <option value="spend">Spend</option>
-                  {% endif %}
+                  <option value="" disabled selected>Metric</option>
+                  <option value="cos">COS</option>
+                  <option value="cr">CR</option>
+                  <option value="ctr">CTR</option>
+                  <option value="rext">RexT</option>
+                  <option value="spend">Spend</option>
                 </select>
               </div>
             </div>
@@ -121,6 +117,19 @@ Parameter Entry
   </div>
 </div>
 <script>
+// select the appropriate option if provided in URL
+let metricOptions = document.getElementById('metric_selector').options;
+let providedMetric = '{{metric.lower()}}';
+if (providedMetric !== 'undefined') {
+  for (var i = 0; i < metricOptions.length; i ++) {
+    if (providedMetric == metricOptions[i].value) {
+      document.getElementById('metric_selector').value = providedMetric;
+      break;
+    }
+  }
+}
+
+// show proper buttons based on initial input
 function initializeButtons(values) {
   let partner_id = values.partnerID;
   let client_id = values.clientID;

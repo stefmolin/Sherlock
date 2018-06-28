@@ -194,7 +194,7 @@ function makeRequest(url, method, dataProcessor, errorHandler, ...dataProcessorA
 function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
   const time_between_attempts_ms = 5000;
-  const host = "http://127.0.0.1:53865"; // TODO switch to server location
+  const host = "http://watson.yourcompany.com";
   fetch(host + url, {
     method: 'post'
   })
@@ -229,7 +229,7 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
 function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
   const time_between_attempts_ms = 5000;
-  const host = "http://127.0.0.1:53865"; // TODO switch to server location
+  const host = "http://watson.yourcompany.com";
   fetch(host + url)
   .then(function(response) {
     //console.log(response.status);
