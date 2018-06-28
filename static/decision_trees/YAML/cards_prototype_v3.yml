@@ -45,7 +45,8 @@ cards:
       action:
         ask_user: false
         function: detectChangeInCount
-        additional_arguments: campaign_name
+        additional_arguments:
+          columnToCount: campaign_name
         result:
           true:
               description: "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR."
@@ -83,17 +84,19 @@ cards:
       action:
         ask_user: false
         function: detectChangeInCount
-        additional_arguments: "campaign_sampling_ratio"
+        additional_arguments:
+          columnToCount: "campaign_sampling_ratio"
         result:
           true:
               description: "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               follow_up:
                 function: graphData
                 additional_arguments: # the first argument (the data from the query) will automatically be used
-                    - "campaign_sampling_ratio" # the column to graph
-                    - "percent" # how to format the y-axis
-                    - "line" # graph type
-                    - false # dates only not datetimes
+                    columnToGraph: "campaign_sampling_ratio" # the column to graph
+                    yAxisFormat: "percent" # how to format the y-axis
+                    graphType: "line" # graph type
+                    isDatetime: false # dates only not datetimes
+                    graphAsIndex: false # don't graph values as index (this field is optional)
               next_card: 'cr_setup_capping_rule'
               button_location: center
               button_text: Acknowledge
@@ -132,12 +135,13 @@ cards:
         ask_user: false
         function: detectChangeInValue
         additional_arguments:
-          - campaign_capping_starting_day
-          - campaign_capping_ending_day
-          - daily_capping
-          - campaign_capping_since_last_visit
-          - partner_capping_since_last_visit
-          - campaign_lifetime_capping
+          columns:
+            - campaign_capping_starting_day
+            - campaign_capping_ending_day
+            - daily_capping
+            - campaign_capping_since_last_visit
+            - partner_capping_since_last_visit
+            - campaign_lifetime_capping
         result:
           true:
               description: "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
@@ -336,8 +340,8 @@ cards:
         ask_user: false
         function: checkMaxValue
         additional_arguments:
-          - is_segmentation_enabled # column to check the max for
-          - 0 # check if the max value is equal to 0
+          column: is_segmentation_enabled # column to check the max for
+          value: 0 # check if the max value is equal to 0
         result:
           true:
               description: "Segmentation can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
@@ -370,7 +374,8 @@ cards:
       action:
         ask_user: false
         function: detectChangeInCount
-        additional_arguments: segment_name
+        additional_arguments:
+          columnToCount: segment_name
         result:
           true:
               description: "It seems that someone added/deleted a segment: {values} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
@@ -408,17 +413,18 @@ cards:
       action:
         ask_user: false
         function: detectChangeInValue
-        additional_arguments: banner_count
+        additional_arguments:
+          columns: banner_count
         result:
           true:
               description: "It looks that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
               follow_up:
                 function: graphData
                 additional_arguments: # the first argument (the data from the query) will automatically be used
-                    - "banner_count" # the column to graph
-                    - "number" # how to format the y-axis
-                    - "line" # graph type
-                    - false # dates only not datetimes
+                    columnToGraph: "banner_count" # the column to graph
+                    yAxisFormat: "number" # how to format the y-axis
+                    graphType: "line" # graph type
+                    isDatetime: false # dates only not datetimes
               next_card: 'cr_setup_feed_import_rule'
               button_location: 'center'
               button_text: 'Acknowledge'
@@ -454,7 +460,8 @@ cards:
       action:
         ask_user: false
         function: isRecent
-        additional_arguments: 10 # threshold (make this 0 to test)
+        additional_arguments:
+          threshold: 10 # threshold (make this 0 to test)
         result:
           true:
               next_card: 'cr_perf_deduplication_ratio_rule'
@@ -471,10 +478,10 @@ cards:
         ask_user: true
         function: graphData
         additional_arguments:
-          - feed_quality
-          - percent
-          - line # graph type
-          - false # dates only not datetimes
+          columnToGraph: feed_quality
+          yAxisFormat: percent
+          graphType: line # graph type
+          isDatetime: false # dates only not datetimes
         result:
           true:
               next_card: 'cr_feed_quality_text'
@@ -515,8 +522,8 @@ cards:
         ask_user: false
         function: isPercentChangeStable
         additional_arguments:
-          - dedup_ratio # Column name for the check
-          - 0.30 # threshold (make this 0 to test)
+          column: dedup_ratio # Column name for the check
+          threshold: 0.30 # threshold (make this 0 to test)
         result:
           true:
               next_card: 'cr_perf_website_sales_share_graph'
@@ -533,10 +540,10 @@ cards:
         ask_user: true
         function: graphData
         additional_arguments:
-          - dedup_ratio
-          - percent
-          - line # graph type
-          - false # dates only not datetimes
+          columnToGraph: dedup_ratio
+          yAxisFormat: percent
+          graphType: line # graph type
+          isDatetime: false # dates only not datetimes
         result:
           true:
               next_card: 'cr_perf_deduplication_ratio_text'
@@ -577,7 +584,8 @@ cards:
       action:
         ask_user: false
         function: detectChangeInValue
-        additional_arguments: percentage_of_website
+        additional_arguments:
+          columns: percentage_of_website
         result:
           true:
               description: "If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client."

@@ -38,7 +38,6 @@ Investigate {{ metric.upper() }}
         <p id="card_description">Please be patient while we fetch the data to help you troubleshoot this issue.</p>
         <br>
         <div id="graphs">
-          <canvas id="graph-1" style="display: none;"></canvas>
         </div>
         <div id="loading_indicator" class="preloader-wrapper big active" style="display: none;">
           <div class="spinner-layer spinner-blue-only">
@@ -54,7 +53,7 @@ Investigate {{ metric.upper() }}
           </div>
         </div>
         <br>
-        <p id="investigation_info"><em>**You are currently investigating: client {{client_id}}, campaign {{campaign_id}}, for {{metric.upper()}} between {{start_date}} and {{end_date}}.**</em></p>
+        <p id="investigation_info"><em>**You are currently investigating: partner {{partner_id}}, client {{client_id}}, campaign {{campaign_id}}, for {{metric.upper()}} between {{start_date}} and {{end_date}}.**</em></p>
         <div class="card-action">
           <button id="left_action_button" class="left">No</button>
           <button id="center_action_button" class="center">Acknowledge</button>
@@ -65,12 +64,13 @@ Investigate {{ metric.upper() }}
   </div>
 </div>
 <script>
+console.log("Partner ID: {{partner_id}}");
 console.log("Client ID: {{client_id}}");
 console.log("Campaign ID: {{campaign_id}}");
 console.log("Start date: {{start_date}}");
 console.log("End date: {{end_date}}");
 console.log("Metric: {{metric}}");
 // start the troubleshooting process
-startTraversal(decision_tree, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}');
+startTraversal(decision_tree, {{partner_id}}, {{client_id}}, {{campaign_id}}, '{{start_date}}', '{{end_date}}');
 </script>
 {% endblock %}

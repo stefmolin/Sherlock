@@ -28,7 +28,8 @@ cards:
       action:
         ask_user: false
         function: detectChangeInCount
-        additional_arguments: campaign_name
+        additional_arguments:
+          columnToCount: campaign_name
         result:
           true:
               description: "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR."
@@ -37,6 +38,32 @@ cards:
               button_text: Acknowledge
           false:
               next_card: 'cr_setup_sampling_ratio_rule'
+
+    - id: 'cr_setup_sampling_ratio_rule'
+      title: 'Sampling Ratio'
+      query_url: /api/v1/query/sherlock/setup/sampling_ratio?client_id={client_id}&campaign_id={campaign_id}&start_date={start_date}&end_date={end_date}
+      description:
+      action:
+        ask_user: false
+        function: detectChangeInCount
+        additional_arguments:
+          columnToCount: "campaign_sampling_ratio"
+        result:
+          true:
+              description: "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this."
+              follow_up:
+                function: graphData
+                additional_arguments: # the first argument (the data from the query) will automatically be used
+                    columnToGraph: "campaign_sampling_ratio" # the column to graph
+                    yAxisFormat: "percent" # how to format the y-axis
+                    graphType: "line" # graph type
+                    isDatetime: false # dates only not datetimes
+                    graphAsIndex: false # don't graph values as index (this field is optional)
+              next_card: 'cr_setup_capping_rule'
+              button_location: center
+              button_text: Acknowledge
+          false:
+              next_card: 'cr_setup_capping_rule'
 
     ...
 
@@ -60,14 +87,14 @@ Change in the count of a column and return date of first change and values
 Parameters: json = the query result from the API where each row of the result is
                    an entry in the outer array and each row is represented as
                    {col_name : value}
-            columnToCount = the col_name to be checked
+            options = a dictionary with one entry "columnToCount" the col_name to be checked
 
 Returns:   The day and values on the first day that is different or false for no change
 
 Examples:
 detectChangeInCount([{'day' : 1, 'test' : 2}, {'day' : 1, 'test': 1},
                     {'day' : '2017-08-02', 'test' : 3}, {'day' : '2017-08-02', 'test' : 23},
-                    {'day' : '2017-08-02', 'test' : 'changed!'}], 'test')
+                    {'day' : '2017-08-02', 'test' : 'changed!'}], {columnToCount:'test'})
 ```
 
 ### detectChangeInValue
@@ -77,7 +104,7 @@ Check change in a value from day to day
 Parameters: json = the query result from the API where each row of the result is
                    an entry in the outer array and each row is represented as
                    {col_name : value}
-            columns = the col_name's to be checked
+            options = dictionary with key "columns" containing the col_name's to be checked
 
 Returns:   The day and values on the first day that is different or false for no change
 
@@ -85,16 +112,58 @@ Note that this is relying on the data being sorted by day already.
 ```
 
 ### isRecent
-Check if max date is more than threshold days ago. Additional argument is `threshold` as a percent (decimal).
+```
+Check if max date is more than threshold days ago.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = dictionary with key "threshold": number of days ago that the max date must be greater than be considered recent.
+
+Returns: True if the data is considered recent, false otherwise.
+```
 
 ### isPercentChangeStable
-Check if percent change day over day for a specific column is too much. Additional arguments are `column` for the column to check from the data and `threshold` as a percent (decimal).
+```
+Check if percent change day over day for a specific column is too much.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = dictionary with key "column" for the column to check from the data and "threshold" as a percent (decimal).
+
+Returns: True if the percent change is stable, false otherwise.
+```
 
 ### checkMaxValue
-Checks if the max value is equal to the provided value. Additional arguments are `column` for the column to check from the data and `value`.
+```
+Checks if the max value is equal to the provided value.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = a dictionary with keys "column" for the column to check from the data and "value" for the value to check if it is equal to the max.
+
+Returns: True if max value is equal to the provided value, false otherwise.
+```
 
 ### graphData
-This isn't a rule, but it can also be used in the `function` attribute of the card definition. Additional arguments are `columnToGraph` for the column of the data you want to graph (dates must be the column `day`), `yAxisFormat` for the type of formatting to use on the y-axis values (i.e. percent, currency, number, etc.), `graphType` for the type of graph you want (i.e. 'line' or 'bar'), and `isDatetime` a boolean indicating if the x-axis is composed of datetimes (false means just dates).
+This isn't a rule, but it can also be used in the `function` attribute of the card definition.
+
+```
+Graph the data (1 graph per column)
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = a dictionary with keys: "columnToGraph" -- the column(s) of the data you want to graph (dates must be the column "day"),
+                                              "yAxisFormat" -- the type of formatting to use on the y-axis values (i.e. percent, currency, number, etc.),
+                                              "graphType" -- the type of graph you want (i.e. 'line' or 'bar'),
+                                              "isDatetime" -- a boolean indicating if the x-axis is composed of datetimes (false means just dates).
+                                              "graphAsIndex" -- (optional) boolean indicating whether values should be graphed as an index instead of the raw values.
+
+Returns: Nothing. Creates graphs in the <div> with ID "graphs" (will create the <canvas> tags as needed).
+```
 
 ## Requirements
 Docker, [Watson API](https://github.com/stefmolin/watson-api)

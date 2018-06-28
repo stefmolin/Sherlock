@@ -42,11 +42,19 @@ Parameter Entry
               </div>
             </div>
             <div class="row">
-              <div class="col s2 offset-s3">
-                {% if client_id %}
-                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" value="{{ client_id }}" placeholder="#">
+              <div class="col s2 offset-s2">
+                {% if partner_id %}
+                  <input id="partner_id" name="partner_id" class="date-input no-spinner" type="number" required="" value="{{ partner_id }}" placeholder="#" oninput="conditionalButtons('client_lookup_button', 'client_id', 'partner_lookup_button', 'partner_id')">
                 {% else %}
-                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" placeholder="#">
+                  <input id="partner_id" name="partner_id" class="date-input no-spinner" type="number" required="" placeholder="#" oninput="conditionalButtons('client_lookup_button', 'client_id', 'partner_lookup_button', 'partner_id')">
+                {% endif %}
+                <label for="partner_id">Partner ID</label>
+              </div>
+              <div class="col s2">
+                {% if client_id %}
+                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" value="{{ client_id }}" placeholder="#" oninput="conditionalButtons('partner_lookup_button', 'partner_id', 'client_lookup_button', 'client_id')">
+                {% else %}
+                  <input id="client_id" name="client_id" class="date-input no-spinner" type="number" required="" placeholder="#" oninput="conditionalButtons('partner_lookup_button', 'partner_id', 'client_lookup_button', 'client_id')">
                 {% endif %}
                 <label for="client_id">Client ID</label>
               </div>
@@ -81,13 +89,29 @@ Parameter Entry
             </div>
             <div class="row">
               <div class="col s6 offset-s3">
+                <select id="partner_selector" class="large-select" style="display: none;" onchange="setValue('partner_id', 'partner_selector')" name="partner_selector">
+                  <option value="" disabled selected>Partner</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s6 offset-s3">
+                <select id="client_selector" class="large-select" style="display: none;" onchange="setValue('client_id', 'client_selector')" name="client_selector">
+                  <option value="" disabled selected>Client</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s6 offset-s3">
                 <select id="campaign_selector" class="large-select" style="display: none;" name="campaign_selector" required="">
                   <option value="" disabled selected>Campaign</option>
                 </select>
               </div>
             </div>
             <div class="card-action form_button">
-              <button id="campaign_lookup_button" type="button" onclick="lookupCampaigns()">Find campaign ID</button>
+              <button id="partner_lookup_button" type="button" onclick="performLookup('client_id', 'partner_selector', 'partner')" style="display: none;">Find partner ID</button>
+              <button id="client_lookup_button" type="button" onclick="performLookup('partner_id', 'client_selector', 'client')" style="display: none;">Find client ID</button>
+              <button id="campaign_lookup_button" type="button" onclick="performLookup('client_id', 'campaign_selector', 'campaign')" style="display: none;">Find campaign ID</button>
               <button id="submit_parameters" style="display: none;">Start Investigation</button>
             </div>
           </form>
@@ -97,6 +121,26 @@ Parameter Entry
   </div>
 </div>
 <script>
+function initializeButtons(values) {
+  let partner_id = values.partnerID;
+  let client_id = values.clientID;
+  if (partner_id && client_id) {
+    turnOff(['partner_lookup_button', 'client_lookup_button']);
+    turnOn(['campaign_lookup_button']);
+  } else if (!partner_id && client_id) {
+    turnOff(['client_lookup_button', 'campaign_lookup_button']);
+    turnOn(['partner_lookup_button']);
+  } else if (partner_id && !client_id) {
+    turnOff(['partner_lookup_button', 'campaign_lookup_button']);
+    turnOn(['client_lookup_button']);
+  } else {
+    turnOff(['campaign_lookup_button']);
+    turnOn(['partner_lookup_button']);
+  }
+}
+
+initializeButtons({partnerID : {{partner_id}}, clientID : {{client_id}}});
+
 var today = new Date();
 var yesterday = new Date(today.setDate(today.getDate() - 1));
 var min_date_limit = new Date(today.setDate(today.getDate() - 90));

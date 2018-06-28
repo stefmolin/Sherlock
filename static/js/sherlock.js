@@ -16,13 +16,23 @@ function hideAllButtons() {
 }
 
 function turnOffCardExtras() {
-  const elements = ['loading_indicator', 'chart'];
+  let elements = ['loading_indicator'];
+  let graphNodes = document.querySelectorAll('[id^="graph-"]');
+  for (var i = 0; i < graphNodes.length; i ++) {
+    elements.push(graphNodes[i].id);
+  }
   turnOff(elements);
 }
 
 function turnOff(elements) {
   for (var e in elements) {
     document.getElementById(elements[e]).style.display = "none";
+  }
+}
+
+function turnOn(elements) {
+  for (var e in elements) {
+    document.getElementById(elements[e]).style.display = "inline-block";
   }
 }
 
@@ -40,7 +50,7 @@ function setCardDescription(description) {
 ****   trees, maniuplating and transitioning   ****
 ****   between cards.                          ****
 **************************************************/
-function startTraversal(json, client_id, campaign_id, start_date, end_date) {
+function startTraversal(json, partner_id, client_id, campaign_id, start_date, end_date) {
   // hide all the buttons
   hideAllButtons();
 
@@ -51,41 +61,38 @@ function startTraversal(json, client_id, campaign_id, start_date, end_date) {
   setCardTitle(initialCard.title);
   setCardDescription(initialCard.description);
   toggleElement("loading_indicator");
-  makeRequest(initialCard.query_url.format({client_id : client_id, campaign_id : campaign_id,
+  makeRequest(initialCard.query_url.format({partner_id : partner_id,
+                                            client_id : client_id, campaign_id : campaign_id,
                                             start_date : start_date, end_date : end_date}),
               "POST", populateCard, dataUnavailable, initialCard,
-              json, client_id, campaign_id, start_date, end_date);
+              json, partner_id, client_id, campaign_id, start_date, end_date);
 }
 
-function populateButton(card, buttonPath, client_id, campaign_id, start_date, end_date) {
+function populateButton(card, buttonPath, partner_id, client_id, campaign_id, start_date, end_date) {
   const nextCardId = card.action.result[buttonPath].next_card;
   if (nextCardId !== undefined && nextCardId !== null) {
     if (card.action.result[buttonPath].button_location !== undefined && card.action.result[buttonPath].button_location !== null) {
       const buttonLocation = card.action.result[buttonPath].button_location + "_action_button";
       const buttonText = card.action.result[buttonPath].button_text;
       var button = document.getElementById(buttonLocation);
-      button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
+      button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + partner_id + ", " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
       button.innerHTML = buttonText;
       toggleElement(buttonLocation);
     }
   }
 }
 
-function populateCard(data, card, json, client_id, campaign_id, start_date, end_date) {
+function populateCard(data, card, json, partner_id, client_id, campaign_id, start_date, end_date) {
   var resultOfCheck = null;
   if (card.action.function !== 'undefined' && card.action.function !== null) {
-    if (card.action.additional_arguments.length > 1) {
-      resultOfCheck = window[card.action.function](data, ...card.action.additional_arguments);
-    } else {
-      resultOfCheck = window[card.action.function](data, card.action.additional_arguments);
-    }
+    resultOfCheck = window[card.action.function](data, card.action.additional_arguments);
   }
   toggleElement("loading_indicator");
   if (card.action.ask_user == true) {
     // populate the buttons bc user needs to move the process forward
     var buttonPaths = [true, false];
     for (var i in buttonPaths) {
-      populateButton(card, buttonPaths[i], client_id, campaign_id, start_date, end_date);
+      populateButton(card, buttonPaths[i], partner_id, client_id, campaign_id, start_date, end_date);
     }
   } else {
     if (resultOfCheck !== null && resultOfCheck !== false) {
@@ -93,7 +100,7 @@ function populateCard(data, card, json, client_id, campaign_id, start_date, end_
         setCardDescription(card.action.result.true.description.format(resultOfCheck));
       }
       if (card.action.result.true.follow_up !== 'undefined' && card.action.result.true.follow_up !== undefined) {
-        const followUpResults = window[card.action.result.true.follow_up.function](data, ...card.action.result.true.follow_up.additional_arguments);
+        const followUpResults = window[card.action.result.true.follow_up.function](data, card.action.result.true.follow_up.additional_arguments);
       }
       const nextCardId = card.action.result.true.next_card;
       if (nextCardId !== undefined && nextCardId !== null) {
@@ -101,19 +108,19 @@ function populateCard(data, card, json, client_id, campaign_id, start_date, end_
           const buttonLocation = card.action.result.true.button_location + "_action_button";
           const buttonText = card.action.result.true.button_text;
           var button = document.getElementById(buttonLocation);
-          button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
+          button.setAttribute("onClick", "changeCard(decision_tree, '" + nextCardId + "', " + partner_id + ", " + client_id + ", " + campaign_id + ", '" + start_date + "', '" + end_date + "');");
           button.innerHTML = buttonText;
           toggleElement(buttonLocation);
         } else {
           // automatically advance since this card has no buttons
-          changeCard(json, nextCardId, client_id, campaign_id, start_date, end_date);
+          changeCard(json, nextCardId, partner_id, client_id, campaign_id, start_date, end_date);
         }
       }
     } else {
       // automatically go to the next card
       const nextCardId = card.action.result.false.next_card;
       if (nextCardId !== undefined) {
-        changeCard(json, nextCardId, client_id, campaign_id, start_date, end_date);
+        changeCard(json, nextCardId, partner_id, client_id, campaign_id, start_date, end_date);
       }
     }
   }
@@ -131,7 +138,7 @@ function getStartNode(json) {
   return getCardById(json, "start");
 }
 
-function changeCard(json, id, client_id, campaign_id, start_date, end_date) {
+function changeCard(json, id, partner_id, client_id, campaign_id, start_date, end_date) {
   const nextCard = getCardById(json, id);
   setCardTitle(nextCard.title);
   setCardDescription(nextCard.description);
@@ -143,15 +150,16 @@ function changeCard(json, id, client_id, campaign_id, start_date, end_date) {
   if (nextCard.query_url !== 'undefined' && nextCard.query_url !== undefined && nextCard.query_url !== null) {
     turnOffCardExtras();
     toggleElement('loading_indicator');
-    makeRequest(nextCard.query_url.format({client_id : client_id, campaign_id : campaign_id,
-                                              start_date : start_date, end_date : end_date}),
+    makeRequest(nextCard.query_url.format({partner_id : partner_id,
+                                           client_id : client_id, campaign_id : campaign_id,
+                                           start_date : start_date, end_date : end_date}),
                 "POST", populateCard, dataUnavailable, nextCard, json,
-                client_id, campaign_id, start_date, end_date);
+                partner_id, client_id, campaign_id, start_date, end_date);
   } else {
     turnOffCardExtras();
     if (nextCard.action !== undefined && nextCard.action.result !== undefined){
       for (var button in nextCard.action.result) {
-        populateButton(nextCard, button, client_id, campaign_id, start_date, end_date);
+        populateButton(nextCard, button, partner_id, client_id, campaign_id, start_date, end_date);
       }
     }
   }
@@ -268,31 +276,177 @@ class TimeoutError extends Error {
 ****  Response processing and error handling   ****
 ****  functions for specific card layouts.     ****
 **************************************************/
-function lookupCampaigns() {
-  const client_id = document.getElementById("client_id").value;
-  if (/\d+/.test(client_id) && client_id > 0){
-    console.log('client_id is valid, looking up campaigns...');
-    toggleElement("loading_indicator"); // show loading indicator
-    if (document.getElementById("campaign_selector").style.display !== "none") {
-      toggleElement("campaign_selector"); // show the options
+function conditionalButtons(button, field, current_button, current_field) {
+    let fieldToFill = document.getElementById(field);
+    if (fieldToFill.value == null || fieldToFill.value === undefined || fieldToFill.value == "") {
+      turnOn([button]);
+    } else {
+      // if the field we are going to show the button for is already filled, don't show the button again
+      turnOff([button]);
     }
-    const url = "/api/v1/query/sherlock/campaign_lookup?client_id=" + client_id;
-    makeRequest(url, "POST", fillInCampaignOptions, campaignsUnavailable);
+
+    // if we have filled a field that needs a button showing, remove the button
+    let currentField = document.getElementById(current_field);
+    if (currentField.value == null || currentField.value === undefined || currentField.value == "") {
+      turnOn([current_button]);
+    } else {
+      // if the field we are going to show the button for is already filled, don't show the button again
+      turnOff([current_button]);
+    }
+
+    // if both client and partner are filled, show campaign
+    if (fieldToFill.value != "" && currentField.value != "") {
+      turnOn(['campaign_lookup_button']);
+    } else {
+      turnOff(['campaign_lookup_button']);
+    }
+
+    // make sure only 1 button shows at once
+    let partnerButtonShowing = document.getElementById('partner_lookup_button').style.display != "none";
+    let clientButtonShowing = document.getElementById('client_lookup_button').style.display != "none";
+    let campaignButtonShowing = document.getElementById('campaign_lookup_button').style.display != "none";
+    if ((partnerButtonShowing + clientButtonShowing + campaignButtonShowing) >= 2) {
+      // at least 2 buttons are on; show the highest level: partner > client > campaign
+      if (partnerButtonShowing) {
+        turnOff(['client_lookup_button', 'campaign_lookup_button']);
+      } else if (clientButtonShowing) {
+        turnOff(['campaign_lookup_button']);
+      }
+    }
+}
+
+function performLookup(id, selector, type) {
+  const fieldValue = document.getElementById(id).value;
+  if (/\d+/.test(fieldValue) && fieldValue > 0){
+    console.log('field is valid, looking up IDs...');
+    toggleElement("loading_indicator"); // show loading indicator
+    if (document.getElementById(selector).style.display !== "none") {
+      toggleElement(selector); // show the options
+    }
+    if (type == "partner"){
+      const url = "/api/v1/query/sherlock/partner_lookup?client_id=" + fieldValue;
+      makeRequest(url, "POST", fillInPartnerOptions, partnersUnavailable);
+    } else if (type == "client"){
+      const url = "/api/v1/query/sherlock/client_lookup?partner_id=" + fieldValue;
+      makeRequest(url, "POST", fillInClientOptions, clientsUnavailable);
+    } else {
+      // type == "campaign"
+      const url = "/api/v1/query/sherlock/campaign_lookup?client_id=" + fieldValue;
+      makeRequest(url, "POST", fillInCampaignOptions, campaignsUnavailable);
+    }
   } else {
-    console.log(client_id);
-    document.getElementById('client_id').focus();
-    document.getElementById('client_id').reportValidity();
+    console.log(fieldValue);
+    document.getElementById(id).focus();
+    document.getElementById(id).reportValidity();
   }
 }
 
+function partnersUnavailable() {
+  optionsUnavailable('partner_selector', 'partner_lookup_button');
+}
+
+function clientsUnavailable() {
+  optionsUnavailable('client_selector', 'client_lookup_button');
+}
+
 function campaignsUnavailable() {
-  var campaign_selector = document.getElementById("campaign_selector");
+  optionsUnavailable('campaign_selector', 'campaign_lookup_button');
+}
+
+function optionsUnavailable(selector, button) {
+  var option_selector = document.getElementById(selector);
   var option = document.createElement("option");
   option.text = "[ERROR] Unable to pull data."; // show users the campaign name
   option.value = null; // grab the ID when we pull in this field on Sherlock's end
-  campaign_selector.add(option);
-  toggleElement("campaign_selector"); // show the options
-  toggleElement("campaign_lookup_button"); // don't show the button anymore
+  option_selector.add(option);
+  toggleElement(selector); // show the options
+  toggleElement(button); // don't show the button anymore
+}
+
+function fillInPartnerOptions(partners) {
+  try {
+    if (partners != null) {
+      var partner_selector = document.getElementById("partner_selector");
+      for (var i = 0; i < partners.length; i++){
+        var option = document.createElement("option");
+        option.text = partners[i].partner_name; // show users the partner name
+        option.value = partners[i].partner_id; // grab the ID when we pull in this field on Sherlock's end
+        partner_selector.add(option);
+      }
+      if (partner_selector.options.length == 1) {
+        // this is most likely not a valid advertiser, so show that in the dropdown hint
+        partner_selector.options[0].text = "No partners for that client";
+        partner_selector.selectedIndex = 0;
+      } else {
+        // only update the buttons if we actually got partners back
+        toggleElement("partner_lookup_button"); // don't show the button anymore
+        console.log('Successfully retrieved data!');
+        toggleElement("loading_indicator"); // turn off the loading indicator now that we have the data
+        if (partner_selector.options.length == 2) {
+          document.getElementById('partner_id').value = partner_selector.options[1].value;
+        } else {
+          partner_selector.options[0].text = "Select a partner";
+          if (partner_selector.options.length > 2) {
+            /* the selector has 2 options, one is the non-selectable one and the other is valid so only need to move
+            the selector when we have more than 2 to to the non-selectable one */
+            partner_selector.selectedIndex = 0; // set the selector to something that prompts selecting the proper value
+          }
+        }
+        if (document.getElementById('partner_id').value != "" && document.getElementById('client_id').value != ""){
+          toggleElement("campaign_lookup_button"); // show the button to lookup campaigns
+        }
+      }
+      if (partner_selector.style.display === "none" && partner_selector.options.length != 2) {
+        toggleElement("partner_selector"); // show the button to lookup campaigns
+      }
+    }
+  } catch (error) {
+    // TODO something is wrong with the data, should we request it again or just fail?
+    toggleElement("loading_indicator");
+    partnersUnavailable();
+  }
+}
+
+function fillInClientOptions(clients) {
+  try {
+    if (clients != null) {
+      var client_selector = document.getElementById("client_selector");
+      for (var i = 0; i < clients.length; i++){
+        var option = document.createElement("option");
+        option.text = clients[i].client_name; // show users the client name
+        option.value = clients[i].client_id; // grab the ID when we pull in this field on Sherlock's end
+        client_selector.add(option);
+      }
+      if (client_selector.options.length == 1) {
+        // this is most likely not a valid advertiser, so show that in the dropdown hint
+        client_selector.options[0].text = "No clients for that partner";
+        client_selector.selectedIndex = 0;
+      } else {
+        // only update the buttons if we actually got clients back
+        toggleElement("client_lookup_button"); // don't show the button anymore
+        toggleElement("campaign_lookup_button"); // show the button to submit the form
+        toggleElement("loading_indicator"); // turn off the loading indicator now that we have the data
+        console.log('Successfully retrieved data!');
+        if (client_selector.options.length == 2) {
+          document.getElementById('client_id').value = client_selector.options[1].value;
+        } else {
+          client_selector.options[0].text = "Select a client";
+          if (client_selector.options.length > 2) {
+            /* the selector has 2 options, one is the non-selectable one and the other is valid so only need to move
+            the selector when we have more than 2 to to the non-selectable one */
+            client_selector.selectedIndex = 0; // set the selector to something that prompts selecting the proper value
+          }
+        }
+      }
+      if (document.getElementById("client_selector").style.display === "none" && client_selector.options.length != 2) {
+        toggleElement("client_selector"); // show the options
+      }
+    }
+  } catch (error) {
+    // TODO something is wrong with the data, should we request it again or just fail?
+    toggleElement("loading_indicator");
+    clientsUnavailable();
+  }
 }
 
 function fillInCampaignOptions(campaigns) {
@@ -331,4 +485,14 @@ function fillInCampaignOptions(campaigns) {
     toggleElement("loading_indicator");
     campaignsUnavailable();
   }
+}
+
+function setValue(id, selector) {
+  let item = document.getElementById(id);
+  let item_selector = document.getElementById(selector);
+  // copy over value
+  let selected = item_selector.options[item_selector.selectedIndex].value;
+  item.value = selected;
+  // hide selector
+  item_selector.style.display = "none";
 }

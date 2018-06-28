@@ -9,17 +9,17 @@
 Parameters: json = the query result from the API where each row of the result is
                    an entry in the outer array and each row is represented as
                    {col_name : value}
-            columnToCount = the col_name to be checked
+            options = a dictionary with one entry "columnToCount" the col_name to be checked
 
 Returns:   The day and values on the first day that is different or false for no change
 
 Examples:
 detectChangeInCount([{'day' : 1, 'test' : 2}, {'day' : 1, 'test': 1},
                     {'day' : '2017-08-02', 'test' : 3}, {'day' : '2017-08-02', 'test' : 23},
-                    {'day' : '2017-08-02', 'test' : 'changed!'}], 'test')
+                    {'day' : '2017-08-02', 'test' : 'changed!'}], {columnToCount:'test'})
 */
-function detectChangeInCount(json, columnToCount){
-  return changeInCount(getCounts(json, columnToCount));
+function detectChangeInCount(json, options){
+  return changeInCount(getCounts(json, options.columnToCount));
 }
 
 function getCounts(json, columnToCount) {
@@ -33,7 +33,7 @@ function getCounts(json, columnToCount) {
     } else {
       entry += 1;
       current_date = json[i].day;
-      counts[entry] = {day : current_date, count : 1 , values : [json[i][columnToCount]]};
+      counts[entry] = {day : current_date, count : 1, values : [json[i][columnToCount]]};
     }
   }
   return counts;
@@ -58,14 +58,15 @@ function changeInCount(json){
 Parameters: json = the query result from the API where each row of the result is
                    an entry in the outer array and each row is represented as
                    {col_name : value}
-            columns = the col_name's to be checked
+            options = dictionary with key "columns" containing the col_name's to be checked
 
 Returns:   The day and values on the first day that is different or false for no change
 
 Note that this is relying on the data being sorted by day already.
 */
-function detectChangeInValue(json, columns) {
+function detectChangeInValue(json, options) {
   var changes_list = [];
+  let columns = options.columns;
   for (var i in columns) {
     var col = columns[i];
     var check = changeInValue(json, col);
@@ -98,8 +99,15 @@ function changeInValue(json, columnToCheck) {
   return false;
 }
 
-// Check if max date is more than threshold days ago
-function isRecent(json, threshold) {
+/* Check if max date is more than threshold days ago.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = dictionary with key "threshold": number of days ago that the max date must be greater than be considered recent.
+
+Returns: True if the data is considered recent, false otherwise.*/
+function isRecent(json, options) {
   var dates = [];
   for (var i in json) {
     dates.push(new Date(json[i].day));
@@ -107,19 +115,27 @@ function isRecent(json, threshold) {
   var maxDate = new Date(Math.max.apply(null, dates));
   const oneDay = 24*60*60*1000;
   var difference = (new Date() - maxDate)/oneDay;
-  if (difference > threshold) {
+  if (difference > options.threshold) {
     return false;
   } else {
     return true;
   }
 }
 
-// check if percent change day over day for a specific column is too much
-function isPercentChangeStable(json, column, threshold) {
+/*Check if percent change day over day for a specific column is too much.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = dictionary with key "column" for the column to check from the data and "threshold" as a percent (decimal).
+
+Returns: True if the percent change is stable, false otherwise.*/
+function isPercentChangeStable(json, options) {
+  let column = options.column;
+  let threshold = options.threshold;
   for (var i = 1; i < json.length; i++) {
     let old_value = json[i - 1][column];
     let new_value = json[i][column];
-    console.log(old_value, new_value);
     if (Math.abs(percentChange(new_value, old_value)) > threshold) {
       return false;
     }
@@ -131,8 +147,17 @@ function percentChange(new_value, old_value) {
   return (new_value - old_value) / old_value;
 }
 
-// checks if the max value is equal to the provided value
-function checkMaxValue(json, column, value) {
+/*Checks if the max value is equal to the provided value.
+
+Parameters: json = the query result from the API where each row of the result is
+                   an entry in the outer array and each row is represented as
+                   {col_name : value}
+            options = a dictionary with keys "column" for the column to check from the data and "value" for the value to check if it is equal to the max.
+
+Returns: True if max value is equal to the provided value, false otherwise.*/
+function checkMaxValue(json, options) {
+  let column = options.column;
+  let value = options.value;
   var values = [];
   for (var i in json) {
     values.push(json[i][column]);

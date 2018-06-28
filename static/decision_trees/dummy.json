@@ -10,7 +10,9 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInCount",
-				"additional_arguments": "campaign_name",
+				"additional_arguments": {
+					"columnToCount": "campaign_name"
+				},
 				"result": {
 					"true": {
 						"description": "Seems that someone launched/paused (a) campaign(s): {values} on this account on {day}. This can affect your campaign's CR.",
@@ -32,18 +34,20 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInCount",
-				"additional_arguments": "campaign_sampling_ratio",
+				"additional_arguments": {
+					"columnToCount": "campaign_sampling_ratio"
+				},
 				"result": {
 					"true": {
 						"description": "It seems that someone changed the sampling ratio on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
 						"follow_up": {
 							"function": "graphData",
-							"additional_arguments": [
-								"campaign_sampling_ratio",
-								"percent",
-                "line",
-                false
-							]
+							"additional_arguments": {
+								"columnToGraph": "campaign_sampling_ratio",
+								"yAxisFormat": "percent",
+								"graphType": "line",
+								"isDatetime": false
+							}
 						},
 						"next_card": "cr_setup_capping_rule",
 						"button_location": "center",
@@ -63,14 +67,16 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInValue",
-				"additional_arguments": [
-					"campaign_capping_starting_day",
-					"campaign_capping_ending_day",
-					"daily_capping",
-					"campaign_capping_since_last_visit",
-					"partner_capping_since_last_visit",
-					"campaign_lifetime_capping"
-				],
+				"additional_arguments": {
+					"columns": [
+						"campaign_capping_starting_day",
+						"campaign_capping_ending_day",
+						"daily_capping",
+						"campaign_capping_since_last_visit",
+						"partner_capping_since_last_visit",
+						"campaign_lifetime_capping"
+					]
+				},
 				"result": {
 					"true": {
 						"description": "It seems that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
@@ -92,10 +98,10 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "checkMaxValue",
-				"additional_arguments": [
-					"is_segmentation_enabled",
-					0
-				],
+				"additional_arguments": {
+					"column": "is_segmentation_enabled",
+					"value": 0
+				},
 				"result": {
 					"true": {
 						"description": "Segmentation can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
@@ -117,7 +123,9 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInCount",
-				"additional_arguments": "segment_name",
+				"additional_arguments": {
+					"columnToCount": "segment_name"
+				},
 				"result": {
 					"true": {
 						"description": "It seems that someone added/deleted a segment: {values} on {day}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
@@ -139,18 +147,20 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInValue",
-				"additional_arguments": "banner_count",
+				"additional_arguments": {
+					"columns": "banner_count"
+				},
 				"result": {
 					"true": {
 						"description": "It looks that someone changed {changes}. This can significantly impact campaign performance. Please discuss it with your TAM, AX to revert, or let your client know about this.",
 						"follow_up": {
 							"function": "graphData",
-							"additional_arguments": [
-								"banner_count",
-								"number",
-                "line",
-                false
-							]
+							"additional_arguments": {
+								"columnToGraph": "banner_count",
+								"yAxisFormat": "number",
+								"graphType": "line",
+								"isDatetime": false
+							}
 						},
 						"next_card": "cr_setup_feed_import_rule",
 						"button_location": "center",
@@ -170,7 +180,9 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "isRecent",
-				"additional_arguments": 10,
+				"additional_arguments": {
+					"threshold": 10
+				},
 				"result": {
 					"true": {
 						"next_card": "cr_perf_deduplication_ratio_rule"
@@ -189,12 +201,12 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
-				"additional_arguments": [
-					"feed_quality",
-					"percent",
-          "line",
-          false
-				],
+				"additional_arguments": {
+					"columnToGraph": "feed_quality",
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false
+				},
 				"result": {
 					"true": {
 						"next_card": "cr_feed_quality_text",
@@ -233,10 +245,10 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "isPercentChangeStable",
-				"additional_arguments": [
-					"dedup_ratio",
-					0.3
-				],
+				"additional_arguments": {
+					"column": "dedup_ratio",
+					"threshold": 0.3
+				},
 				"result": {
 					"true": {
 						"next_card": "cr_perf_website_sales_share_graph"
@@ -255,12 +267,12 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": true,
 				"function": "graphData",
-				"additional_arguments": [
-					"dedup_ratio",
-					"percent",
-          "line",
-          false
-				],
+				"additional_arguments": {
+					"columnToGraph": "dedup_ratio",
+					"yAxisFormat": "percent",
+					"graphType": "line",
+					"isDatetime": false
+				},
 				"result": {
 					"true": {
 						"next_card": "cr_perf_deduplication_ratio_text",
@@ -299,7 +311,9 @@ const decision_tree = JSON.parse(`
 			"action": {
 				"ask_user": false,
 				"function": "detectChangeInValue",
-				"additional_arguments": "percentage_of_website",
+				"additional_arguments": {
+					"columns": "percentage_of_website"
+				},
 				"result": {
 					"true": {
 						"description": "If the share of sales coming from this campaign over your total website sales is changing, this is likely to be a seasonality issue. Performance is down on the client side too and you need to discuss this with your client.",

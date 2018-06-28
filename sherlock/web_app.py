@@ -56,7 +56,8 @@ def parameter_entry():
         elif not start_date and end_date:
             start_date = datetime.strftime((datetime.strptime(end_date, '%Y-%m-%d') - timedelta(15)), '%Y-%m-%d')
         return render_template('parameter_entry.html',
-                                client_id=request.args.get('client_id'),
+                                partner_id=request.args.get('partner_id') or 'undefined',
+                                client_id=request.args.get('client_id') or 'undefined',
                                 start_date=start_date,
                                 end_date=end_date,
                                 metric=request.args.get('kpi'))
@@ -66,12 +67,14 @@ def parameter_entry():
 @app.route("/investigate", methods=["POST"])
 def investigate():
     if 'username' in session:
+        partner_id = request.form['partner_id']
         client_id = request.form['client_id']
         campaign_id = request.form['campaign_selector']
         start_date = request.form['start_date']
         end_date = request.form['end_date']
         metric = request.form['metric']
         return render_template('investigate.html',
+                                partner_id=partner_id,
                                 client_id=client_id,
                                 campaign_id=campaign_id,
                                 start_date=start_date,
