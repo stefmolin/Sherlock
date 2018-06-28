@@ -173,9 +173,9 @@ Docker, [Watson API](https://github.com/stefmolin/watson-api)
 This is a work-in-progress and is being anonymized for GitHub.
 
 ## Screenshots
-|Login|Investigation|End|
-| :---: | :---: | :---: |
-|<img src="screenshots/sherlock_login_page.png?raw=true" align="center" width="600" alt="Sherlock Login">|<img src="screenshots/sherlock_troubleshooting_cr_gif.gif?raw=true" align="center" width="600" alt="Collecting data to troubleshoot issue">|<img src="screenshots/sherlock_finished_investigation.png?raw=true" align="center" width="600" alt="Investigation completed">|
+|Login|Investigation|
+| :---: | :---: |
+|<img src="screenshots/sherlock_login_page.png?raw=true" align="center" width="600" alt="Sherlock Login">|<img src="screenshots/sherlock_troubleshooting_cr_gif.gif?raw=true" align="center" width="800" alt="Collecting data to troubleshoot issue">|
 
 ## Related Project
 - [Watson API](https://github.com/stefmolin/watson-api)
