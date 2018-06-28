@@ -38,13 +38,16 @@ def login():
         # successful login, set session
         logger.info('{user} has logged in'.format(user=username))
         session['username'] = username
-        return redirect(url_for('parameter_entry'))
+        if 'next' in request.args:
+            return redirect(request.args.get('next'))
+        else:
+            return redirect(url_for('parameter_entry'))
       else:
         # unsuccessful login attempt, display error and allow another attempt
         error = 'Wrong username/password. Please try again.'
-        return render_template('login.html', error=error)
+        return render_template('login.html', error=error, next=request.args.get('next'))
     else:
-      return render_template('login.html')
+      return render_template('login.html', next=request.args.get('next'))
 
 @app.route("/parameter_entry")
 def parameter_entry():
@@ -62,7 +65,7 @@ def parameter_entry():
                                 end_date=end_date,
                                 metric=request.args.get('kpi') or 'undefined')
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('login', next=request.url))
 
 @app.route("/investigate", methods=["POST"])
 def investigate():
@@ -73,6 +76,9 @@ def investigate():
         start_date = request.form['start_date']
         end_date = request.form['end_date']
         metric = request.form['metric']
+        logger.info("{user} is investigating {metric} partner {partner_id}, client {client_id}, campaign {campaign_id} between {start_date} and {end_date}."\
+                    .format(user=session['username'], metric=metric.upper(), partner_id=partner_id, client_id=client_id,
+                            campaign_id=campaign_id, start_date=start_date, end_date=end_date))
         return render_template('investigate.html',
                                 partner_id=partner_id,
                                 client_id=client_id,

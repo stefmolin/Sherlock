@@ -193,7 +193,7 @@ function makeRequest(url, method, dataProcessor, errorHandler, ...dataProcessorA
 // this function should make the post request and return the URL where the results can be found
 function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
-  const time_between_attempts_ms = 5000;
+  const min_time_between_attempts_ms = 1000;
   const host = "http://watson.yourcompany.com";
   fetch(host + url, {
     method: 'post'
@@ -208,7 +208,7 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
       throw new Error('Something went wrong!');
     }
   })
-  .then((data) => setTimeout(getRequest, 1000, data.result, 0, dataProcessor, errorHandler, ...dataProcessorArgs))
+  .then((data) => setTimeout(getRequest, 500, data.result, 0, dataProcessor, errorHandler, ...dataProcessorArgs))
   .catch(function(error){
     //console.log(error);
     attempts += 1;
@@ -219,7 +219,8 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
     } else {
       // wait and try request again
       //console.log('Trying POST again ' + host + url);
-      setTimeout(postRequest, time_between_attempts_ms,
+      // increase time between attempts after each failure (1 second then 2, 3, 4, 5 seconds)
+      setTimeout(postRequest, attempts * min_time_between_attempts_ms,
         url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs);
     }
   })
@@ -228,7 +229,7 @@ function postRequest(url, attempts, dataProcessor, errorHandler, ...dataProcesso
 // this function would retrieve the data and run the function passed in on it
 function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs) {
   const max_attempts_allowed = 5;
-  const time_between_attempts_ms = 5000;
+  const min_time_between_attempts_ms = 1000;
   const host = "http://watson.yourcompany.com";
   fetch(host + url)
   .then(function(response) {
@@ -252,7 +253,8 @@ function getRequest(url, attempts, dataProcessor, errorHandler, ...dataProcessor
     } else {
       // wait and try request again
       //console.log("Trying GET request again " + host + url);
-      setTimeout(getRequest, time_between_attempts_ms,
+      // increase time between attempts after each failure (1, 2, 3, 4, 5 seconds)
+      setTimeout(getRequest, attempts * min_time_between_attempts_ms,
         url, attempts, dataProcessor, errorHandler, ...dataProcessorArgs);
     }
   })
